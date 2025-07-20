@@ -1,125 +1,100 @@
-# 🛡️ Bajaj Vaani – Insurance Query Resolution Assistant
+# 🛡️ Bajaj Vaani - Health Insurance AI Assistant
 
-## 📖 Overview
+**Bajaj Vaani** is a FastAPI-based backend powered by Omnidimension AI and FAISS. It answers user queries about health insurance policies, extracts and indexes clauses from uploaded PDFs, and uses semantic search to provide clause-based reasoning.
 
-**Bajaj Vaani** is a voice and text-based insurance assistant that helps users inquire about their Bajaj Finserv health insurance policy coverage. It uses an intelligent agent powered by the **Omnidimension SDK** for reasoning, **Deepgram** for live transcription, and **ElevenLabs** for voice synthesis.
+---
 
 ## 🚀 Features
 
-* Clause-level query resolution
-* Voice & text support
-* Multilingual (English, Hindi, Marathi)
-* Live transcription using Deepgram
-* Natural-sounding TTS using ElevenLabs
-* Policy clause retrieval with FAISS
-* Post-call summarization and email support
+* **/query**: Ask natural language queries (e.g., "Is cataract surgery covered under this policy?")
+* **/reasoning**: Provides reasoning-based responses using relevant indexed clauses
+* **/upload**: Upload PDF policy documents and auto-index clauses using SentenceTransformer + FAISS
 
-## 🧠 Powered By
+---
 
-* **Omnidimension SDK** (GPT-4o-mini)
-* **Deepgram** (Streaming ASR)
-* **ElevenLabs** (Text-to-Speech)
-* **FAISS** (Semantic clause matching)
+## 🧠 Technologies Used
 
-## 📦 Requirements
+* **FastAPI**
+* **Omnidimension Python SDK**
+* **FAISS** for vector-based clause retrieval
+* **SentenceTransformer** (`all-MiniLM-L6-v2`)
+* **Dotenv** for environment variable management
 
-Install the dependencies:
+---
+
+## 📁 Project Structure
+
+```
+📦bajaj_vaani_api
+├── app.py                 # Main FastAPI application
+├── query_agent.py         # Omnidimension API interface
+├── llm_reasoning.py       # Prompt-based decision logic
+├── vector_store.py        # FAISS indexing + search logic
+├── document_parser.py     # PDF clause extractor
+├── requirements.txt       # Dependencies
+└── .env                   # API keys and config
+```
+
+---
+
+## 📦 .env Format
 
 ```bash
+OMNIDIMENSION_API_KEY=your_omnidim_api_key
+OMNI_AGENT_ID=your_agent_id
+```
+
+---
+
+## 🛠️ Setup & Run
+
+```bash
+git clone https://github.com/yourrepo/bajaj_vaani_api.git
+cd bajaj_vaani_api
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the app
+uvicorn app:app --reload
 ```
 
-Your `requirements.txt` should include:
+Access Swagger UI at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-```
-fastapi
-uvicorn
-openai
-omnidimension
-python-dotenv
-faiss-cpu
-sentence-transformers
-PyMuPDF
-```
+---
 
-## 🔐 Environment Setup
+## 🧪 Example Input
 
-Create a `.env` file with the following keys:
-
-```
-OMNIDIMENSION_API_KEY=<your_omnidimension_key>
-OMNI_AGENT_ID=<your_agent_id>
-```
-
-> Do not commit `.env` with real credentials.
-
-## 🛠️ Agent Creation
-
-Use `create_agent.py` to define your agent in Omnidimension:
-
-```python
-from omnidimension import Client
-
-client = Client(api_key)
-response = client.agent.create(
-    name="Bajaj Vaani",
-    # full configuration with context_breakdown, transcriber, model, voice, post_call_actions
-)
-```
-
-This returns your **Agent ID** which you’ll use in production.
-
-## 🎙️ Running the FastAPI Server
-
-```bash
-uvicorn main:app --reload
-```
-
-Query the bot:
-
-```bash
-curl -X POST "http://localhost:8000/query?text=46-year-old male, knee surgery, 3-month-old policy"
-```
-
-## 🧰 Example Output
+### /query
 
 ```json
 {
-  "response": {
-    "decision": "Covered",
-    "explanation": "Knee surgery is covered after a 3-month waiting period.",
-    "conditions": "Not valid if cosmetic."
-  }
+  "text": "Is cataract surgery covered under this policy?"
 }
 ```
 
-## 🩱 Architecture Flow
+### /reasoning
 
-1. User query → `/query` endpoint
-2. FAISS matches policy clauses
-3. Agent (Omnidimension) evaluates coverage
-4. Responds with structured markdown
-5. Optionally triggers TTS and post-call actions
+```json
+{
+  "text": "Will my hospitalization due to cataract surgery be reimbursed?"
+}
+```
 
-## 📬 Post-Call Actions
+### /upload
 
-* Email summary to user
-* Extract variables (age, policy age, decision, language)
+Upload PDF file with form-data key: `file`
 
-## 📌 Notes
+---
 
-* This version **uses Omnidimension SDK**, not OpenAI directly.
-* Deepgram & ElevenLabs credentials are handled within the Omnidimension agent config.
-* Voice pipeline, transcription, and summarization handled server-side by the agent.
+## 🧩 Notes
 
-## 🙌 Contributions
+* Ensure your `.env` file is configured properly with working API key and agent ID.
+* Omnidimension SDK uses `client.agent.create()` and `client.agent.call()` for agent creation and querying.
+* FAISS index (`index.faiss`) and corpus (`clauses.json`) are saved locally for persistence.
 
-For contributions, contact the author or raise an issue in your private repo.
+---
 
-## 📞 Example Query
+## 💬 Credits
 
-> "My mother is 60, had cataract surgery, policy is 4 months old"
-
-## ✅ License
-
-Internal Use – Bajaj Finserv / Riya Saraf
+Built with ❤️ for Bajaj Finserv's insurance assistant use case using Omnidimension's agent SDK and open-source NLP tools.
