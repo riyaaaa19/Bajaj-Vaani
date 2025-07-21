@@ -6,23 +6,47 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 
 ---
 
-## 🔍 Features
+## ✅ Features Checklist
 
-### ✅ User-Facing APIs
-
-* `POST /query` – Ask natural language questions like "Is cataract surgery covered?"
-* `POST /reasoning` – Deep LLM-based analysis over relevant clauses
-* `POST /upload` – Upload policy PDFs to extract and index clauses
-* `POST /compare` – Compare coverage between two policy documents
+### 🚀 Core Functionality
+- [x] `POST /query`: Natural language insurance question answering
+- [x] `POST /reasoning`: Gemini-powered clause reasoning using semantic matches
+- [x] `POST /upload`: Upload PDF policies and extract/index clauses
+- [ ] `POST /compare`: Compare two policy documents clause-wise 🔧
 
 ### 🔐 Authentication
+- [ ] JWT-based login (`POST /login`)
+- [ ] Dummy users with roles (admin/user)
+- [ ] Full role-based access control on protected routes 🔧
+- [ ] User registration & password hashing 🔧
 
-* `POST /login` – JWT-based login system
-* Role-based (Admin/User) access management *(optional)*
+### 🧠 AI & Semantic Layer
+- [x] Gemini 1.5 Flash integration for smart responses
+- [x] FAISS + MiniLM for clause matching
+- [x] Prompt templating for decision + explanation
+- [ ] Multi-model support (fallback to local LLM or Claude) 🔧
 
-### ⚙️ Admin APIs
+### 📊 Admin & Logs
+- [ ] Log requests to `logs.json`
+- [ ] `GET /logs`: View logs via admin route 🔧
+- [ ] Admin dashboard UI (FastAPI + Jinja/FastUI or external panel) 🔧
 
-* `GET /logs` – View request logs (admin-only)
+### 📦 Vector Store Management
+- [ ] Add clauses to vector DB (`add_clauses`)
+- [ ] Semantic search for top-k clauses (`search_similar_clauses`)
+- [ ] Export indexed data to LangChain-compatible format 🔧
+
+### 📈 Analytics (Planned)
+- [ ] Track top queries over time 🔧
+- [ ] Query coverage heatmap 🔧
+- [ ] Most frequent clause triggers 🔧
+- [ ] Admin insights for product teams 🔧
+
+### ⚙️ DevOps
+- [x] `.env` config for API keys
+- [ ] Dockerized backend setup 🔧
+- [ ] CI/CD GitHub Actions integration 🔧
+
 
 ---
 
