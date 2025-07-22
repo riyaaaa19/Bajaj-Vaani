@@ -1,64 +1,62 @@
-import os
+from document_parser import load_all_policy_documents, extract_clauses_from_pdf
+from sentence_transformers import SentenceTransformer
 import faiss
 import json
-import numpy as np
-from typing import List
-from sentence_transformers import SentenceTransformer
+import os
 
-# Constants
-CORPUS_PATH = "clauses.json"
-INDEX_PATH = "index.faiss"
-DIM = 384  # Dimensionality for MiniLM
+FAISS_INDEX_PATH = "faiss_index/index.faiss"
+CLAUSES_JSON_PATH = "faiss_index/clauses.json"
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Lazy-load model
-model = None
+def build_faiss_index():
+    clauses = load_all_policy_documents("data/policy_docs")
+    texts = [c["text"] for c in clauses]
+    vectors = model.encode(texts)
 
-def get_model():
-    global model
-    if model is None:
-        print("🚀 Loading SentenceTransformer model...")
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-    return model
+    index = faiss.IndexFlatL2(vectors.shape[1])
+    index.add(vectors)
 
-# Load corpus
-if os.path.exists(CORPUS_PATH):
-    with open(CORPUS_PATH, "r", encoding="utf-8") as f:
-        corpus = json.load(f)
-else:
-    corpus = []
+    faiss.write_index(index, FAISS_INDEX_PATH)
+    with open(CLAUSES_JSON_PATH, "w") as f:
+        json.dump(clauses, f)
 
-# Load or create FAISS index
-if os.path.exists(INDEX_PATH) and len(corpus) > 0:
+    print(f"✅ Indexed {len(clauses)} clauses from PDF documents.")
+
+def load_faiss_and_metadata():
+    if not os.path.exists(FAISS_INDEX_PATH):
+        raise RuntimeError("FAISS index not found. Run vector_store.py to generate it.")
+    index = faiss.read_index(FAISS_INDEX_PATH)
+    with open(CLAUSES_JSON_PATH, "r") as f:
+        metadata = json.load(f)
+    return index, metadata
+
+def search_similar_clauses(query, top_k=5):
+    index, metadata = load_faiss_and_metadata()
+    query_vector = model.encode([query])
+    distances, indices = index.search(query_vector, top_k)
+    results = [metadata[i]["text"] for i in indices[0] if i < len(metadata)]
+    return results
+
+def add_clauses(new_clauses, source_file="uploaded.pdf"):
+    # Load old
     try:
-        print("📂 Loading FAISS index...")
-        index = faiss.read_index(INDEX_PATH)
-    except Exception as e:
-        print(f"⚠️ Failed to load FAISS index: {e}. Reinitializing.")
-        index = faiss.IndexFlatL2(DIM)
-else:
-    index = faiss.IndexFlatL2(DIM)
-    if len(corpus) > 0:
-        embeddings = get_model().encode(corpus)
-        index.add(np.array(embeddings))
+        index, metadata = load_faiss_and_metadata()
+    except:
+        index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
+        metadata = []
 
-# Save index and corpus
-def save_to_disk():
-    with open(CORPUS_PATH, "w", encoding="utf-8") as f:
-        json.dump(corpus, f, ensure_ascii=False, indent=2)
-    faiss.write_index(index, INDEX_PATH)
+    new_vectors = model.encode(new_clauses)
+    index.add(new_vectors)
 
-# Add new clauses to corpus and index
-def add_clauses(new_clauses: List[str]):
-    global corpus
-    corpus.extend(new_clauses)
-    embeddings = get_model().encode(new_clauses)
-    index.add(np.array(embeddings))
-    save_to_disk()
+    for clause in new_clauses:
+        metadata.append({"text": clause, "source_file": source_file})
 
-# Semantic search for similar clauses
-def search_similar_clauses(query: str, top_k: int = 3) -> List[str]:
-    if len(corpus) == 0:
-        return []
-    query_vec = get_model().encode([query])
-    D, I = index.search(np.array(query_vec), top_k)
-    return [corpus[i] for i in I[0]]
+    faiss.write_index(index, FAISS_INDEX_PATH)
+    with open(CLAUSES_JSON_PATH, "w") as f:
+        json.dump(metadata, f)
+
+    print(f"✅ Added {len(new_clauses)} new clauses to index.")
+    
+if __name__ == "__main__":
+    build_faiss_index()
+

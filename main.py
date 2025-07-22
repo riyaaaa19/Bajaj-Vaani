@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import tempfile
 from query_agent import query_bajaj_vaani
-from document_parser import extract_text_from_pdf
+from document_parser import extract_clauses_from_pdf
 from vector_store import search_similar_clauses, add_clauses
 from llm_reasoning import generate_response
 
@@ -49,8 +49,7 @@ async def upload_pdf(file: UploadFile = File(...)):
             tmp.write(await file.read())
             path = tmp.name
 
-        raw = extract_text_from_pdf(path)
-        clauses = [c.strip() for c in raw.split('.') if c.strip()]
+        clauses = extract_clauses_from_pdf(path)  # ✅ Corrected function
         add_clauses(clauses)
 
         return {

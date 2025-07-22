@@ -1,3 +1,5 @@
+# query_agent.py
+
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -5,32 +7,27 @@ import google.generativeai as genai
 # Load the .env file
 load_dotenv()
 
-# Fetch API key
+# Fetch API key from .env
 api_key = os.getenv("GEMINI_API_KEY")
 print("🔑 Loaded API Key:", api_key[:8] + "..." if api_key else "❌ NOT FOUND")
 
 # Configure Gemini
 genai.configure(api_key=api_key)
 
-# Optional: list models for debug
+# Initialize model only once
 try:
-    models = genai.list_models()
-    if not models:
-        print("⚠️ No models returned.")
-    else:
-        print("✅ Available Gemini Models:")
-        for m in models:
-            print("🔹", m.name)
+    model = genai.GenerativeModel("models/gemini-1.5-flash")
+    print("✅ Gemini model loaded: models/gemini-1.5-flash")
 except Exception as e:
-    print("❌ Error listing models:", e)
+    print("❌ Error loading Gemini model:", e)
+    model = None
 
-
-# ✅ This is the function FastAPI expects in main.py
+# Function to query Gemini
 def query_bajaj_vaani(user_input: str):
     try:
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        if not model:
+            return "❌ Gemini model not loaded."
         response = model.generate_content(user_input)
         return response.text.strip()
     except Exception as e:
         return f"❌ Gemini AI error: {e}"
-

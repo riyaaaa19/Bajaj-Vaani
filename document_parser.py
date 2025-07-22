@@ -1,22 +1,29 @@
-import fitz  # PyMuPDF
+# document_parser.py
 
-def extract_text_from_pdf(pdf_path: str) -> str:
-    """
-    Extracts and returns the full text content from a PDF file.
+import os
+from PyPDF2 import PdfReader
 
-    Args:
-        pdf_path (str): The file path to the PDF document.
+def extract_clauses_from_pdf(pdf_path):
+    reader = PdfReader(pdf_path)
+    text = ""
+    for page in reader.pages:
+        content = page.extract_text()
+        if content:
+            text += content + "\n"
 
-    Returns:
-        str: Concatenated text from all pages.
-    """
-    try:
-        doc = fitz.open(pdf_path)
-        text = ""
-        for page in doc:
-            text += page.get_text()
-        doc.close()
-        return text
-    except Exception as e:
-        print(f"❌ Error while extracting text: {e}")
-        return ""
+    # Loosen clause splitting condition to include shorter but meaningful clauses
+    clauses = [clause.strip() for clause in text.split("\n\n") if len(clause.strip()) > 30]
+    return clauses
+
+def load_all_policy_documents(folder_path="data/policy_docs"):
+    all_clauses = []
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".pdf"):
+            path = os.path.join(folder_path, filename)
+            clauses = extract_clauses_from_pdf(path)
+            for clause in clauses:
+                all_clauses.append({
+                    "text": clause,
+                    "source_file": filename
+                })
+    return all_clauses
