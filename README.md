@@ -32,8 +32,8 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 - [ ] Admin dashboard UI (FastAPI + Jinja/FastUI or external panel) 🔧
 
 ### 📦 Vector Store Management
-- [ ] Add clauses to vector DB (`add_clauses`)
-- [ ] Semantic search for top-k clauses (`search_similar_clauses`)
+- [x] Add clauses to vector DB (`add_clauses`)
+- [x] Semantic search for top-k clauses (`search_similar_clauses`)
 - [ ] Export indexed data to LangChain-compatible format 🔧
 
 ### 📈 Analytics (Planned)
