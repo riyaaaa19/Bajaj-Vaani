@@ -1,8 +1,9 @@
 fastapi
 uvicorn
-openai
-omnidimension
+python-jose
+passlib[bcrypt]
 python-dotenv
-faiss-cpu
+pydantic
+typing-extensions
 sentence-transformers
-PyMuPDF
+faiss-cpu
