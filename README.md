@@ -15,8 +15,8 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 - [x] `POST /compare`: Compare two policy documents clause-wise 🔧
 
 ### 🔐 Authentication
-- [ ] JWT-based login (`POST /login`)
-- [ ] Dummy users with roles (admin/user)
+- [x] JWT-based login (`POST /login`)
+- [x] Dummy users with roles (admin/user)
 - [ ] Full role-based access control on protected routes 🔧
 - [ ] User registration & password hashing 🔧
 
