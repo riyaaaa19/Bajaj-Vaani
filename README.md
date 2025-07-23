@@ -11,7 +11,7 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 ### 🚀 Core Functionality
 - [x] `POST /query`: Natural language insurance question answering
 - [x] `POST /reasoning`: Gemini-powered clause reasoning using semantic matches
-- [x] `POST /upload`: Upload PDF policies and extract/index clauses
+- [x] `POST /upload`: Upload PDF/docx/emails policies and extract/index clauses
 - [x] `POST /compare`: Compare two policy documents clause-wise 🔧
 
 ### 🔐 Authentication
