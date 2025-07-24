@@ -2,7 +2,7 @@
 
 ## 🚀 Overview
 
-Bajaj Vaani is an intelligent backend system that simplifies insurance policy understanding using LLM-powered reasoning, semantic clause matching, PDF parsing, and secure access. Built for HackRx 6.0 by Team Avalanche.
+Bajaj Vaani is an intelligent backend system that simplifies insurance policy understanding using LLM-powered reasoning, semantic clause matching, PDF/docx/email parsing, and secure access. Built for HackRx 6.0 by Team Avalanche.
 
 ---
 
