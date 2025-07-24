@@ -52,7 +52,7 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 
 ## 🧠 How It Works
 
-1. **PDF Clause Extraction** – Extracts text and segments it into clauses
+1. **PDF/docx/email Clause Extraction** – Extracts text and segments it into clauses
 2. **Semantic Search (FAISS + MiniLM)** – Finds most relevant clauses
 3. **LLM Reasoning (Gemini)** – Gemini Flash model reasons over matches
 4. **JWT Auth** – Secures all routes and logs user activity
