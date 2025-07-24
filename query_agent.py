@@ -8,7 +8,7 @@ import google.generativeai as genai
 load_dotenv()
 
 # Fetch API key from .env
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GOOGLE_API_KEY")
 print("🔑 Loaded API Key:", api_key[:8] + "..." if api_key else "❌ NOT FOUND")
 
 # Configure Gemini

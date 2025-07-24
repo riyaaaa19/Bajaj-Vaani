@@ -1,5 +1,3 @@
-# llm_reasoning.py
-
 from query_agent import query_bajaj_vaani
 
 def generate_response(query, matches):
@@ -14,13 +12,15 @@ Relevant Policy Clauses:
 
 Task:
 - Determine if the user's case is covered or not.
-- Give a short justification.
-- Refer to the most relevant clauses in your reasoning.
+- Look for exclusions, waiting periods (e.g., 30 days), and policy duration limits.
+- If the policy duration is too short to pass the waiting period, respond "Not Covered".
+- Give a short, factual justification.
+- Refer to specific clauses supporting your decision.
 
-Respond in this exact JSON format:
+Respond strictly in this JSON format:
 {{
   "decision": "Covered" or "Not Covered",
-  "justification": "<short explanation>",
+  "justification": "<brief explanation>",
   "referenced_clauses": ["clause excerpt 1", "clause excerpt 2"]
 }}
 """

@@ -7,3 +7,8 @@ pydantic
 typing-extensions
 sentence-transformers
 faiss-cpu
+google-generativeai
+PyPDF2
+scikit-learn
+python-multipart
+python-docx

@@ -7,8 +7,12 @@ import os
 FAISS_INDEX_PATH = "faiss_index/index.faiss"
 CLAUSES_JSON_PATH = "faiss_index/clauses.json"
 
-# Use SentenceTransformer model
+# Load model once
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Global FAISS and metadata (lazy loaded)
+index = None
+metadata = None
 
 def build_faiss_index():
     clauses = load_all_policy_documents("data/policy_docs")
@@ -29,27 +33,26 @@ def build_faiss_index():
 
     print(f"✅ Indexed {len(clauses)} clauses from policy documents.")
 
-def load_faiss_and_metadata():
-    if not os.path.exists(FAISS_INDEX_PATH):
-        raise RuntimeError("❌ FAISS index not found. Run vector_store.py to generate it.")
-    index = faiss.read_index(FAISS_INDEX_PATH)
-    with open(CLAUSES_JSON_PATH, "r", encoding="utf-8") as f:
-        metadata = json.load(f)
-    return index, metadata
+def load_index_once():
+    global index, metadata
+    if index is None or metadata is None:
+        print("📦 Loading FAISS index and metadata into memory...")
+        if not os.path.exists(FAISS_INDEX_PATH):
+            raise RuntimeError("❌ FAISS index not found. Run vector_store.py to generate it.")
+        index = faiss.read_index(FAISS_INDEX_PATH)
+        with open(CLAUSES_JSON_PATH, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+        print("✅ FAISS index loaded.")
 
 def search_similar_clauses(query, top_k=5):
-    index, metadata = load_faiss_and_metadata()
+    load_index_once()  # ensures it's loaded once
     query_vector = model.encode([query])
     distances, indices = index.search(query_vector, top_k)
     results = [metadata[i]["text"] for i in indices[0] if i < len(metadata)]
     return results
 
 def add_clauses(new_clauses, source_file="uploaded_file"):
-    try:
-        index, metadata = load_faiss_and_metadata()
-    except Exception:
-        index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
-        metadata = []
+    load_index_once()
 
     new_vectors = model.encode(new_clauses)
     index.add(new_vectors)
@@ -67,5 +70,13 @@ def add_clauses(new_clauses, source_file="uploaded_file"):
 
     print(f"✅ Added {len(new_clauses)} new clauses to index.")
 
+def debug_print_indexed_clauses():
+    load_index_once()
+    print("\n📋 Indexed Clauses:\n")
+    for i, item in enumerate(metadata):
+        print(f"{i+1}. {item['text']}\n")
+
+
 if __name__ == "__main__":
+    debug_print_indexed_clauses()
     build_faiss_index()
