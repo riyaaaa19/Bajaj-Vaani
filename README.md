@@ -44,7 +44,7 @@ Bajaj Vaani is an intelligent backend system that simplifies insurance policy un
 
 ### ⚙️ DevOps
 - [x] `.env` config for API keys
-- [ ] Dockerized backend setup 🔧
+- [x] Dockerized backend setup 🔧
 - [ ] CI/CD GitHub Actions integration 🔧
 
 
