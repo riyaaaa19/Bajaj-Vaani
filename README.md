@@ -1,129 +1,150 @@
-# 🛡️ Bajaj Vaani: AI-Powered Insurance Reasoning Backend
 
-## 🚀 Overview
-Bajaj Vaani is an intelligent backend system that simplifies insurance policy understanding using LLM-powered reasoning, semantic clause matching, PDF/docx/eml parsing, and secure access. Built for HackRx 6.0 by Team Avalanche.
 
----
-
-## ✅ Features Checklist
-
-### 🚀 Core Functionality
-- [x] `POST /query`: Natural language insurance question answering
-- [x] `POST /reasoning`: Gemini-powered clause reasoning using semantic matches
-- [x] `POST /upload`: Upload PDF/docx/eml policies and extract/index clauses
-- [x] `POST /compare`: Compare two policy documents clause-wise
-- [x] `POST /upload-and-ask`: Upload a document and ask multiple questions in one request
-
-### 🔐 Authentication
-- [x] JWT-based login (`POST /login`)
-- [x] Dummy users with roles (admin/user)
-- [ ] Full role-based access control on protected routes
-- [ ] User registration & password hashing
-
-### 🧠 AI & Semantic Layer
-- [x] Gemini 1.5 Flash integration for smart responses
-- [x] FAISS + MiniLM for clause matching
-- [x] Prompt templating for decision + explanation
-- [ ] Multi-model support (fallback to local LLM or Claude)
-
-### 📊 Admin & Logs
-- [ ] Log requests to `logs.json`
-- [ ] `GET /logs`: View logs via admin route
-- [ ] Admin dashboard UI (FastAPI + Jinja/FastUI or external panel)
-
-### 📦 Vector Store Management
-- [x] Add clauses to vector DB (`add_clauses`)
-- [x] Semantic search for top-k clauses (`search_similar_clauses`)
-- [ ] Export indexed data to LangChain-compatible format
-
-### 📈 Analytics (Planned)
-- [ ] Track top queries over time
-- [ ] Query coverage heatmap
-- [ ] Most frequent clause triggers
-- [ ] Admin insights for product teams
-
-### ⚙️ DevOps
-- [x] `.env` config for API keys
-- [x] Dockerized backend setup
-- [ ] CI/CD GitHub Actions integration
+### 🛡️ Bajaj Vaani: AI-Powered Insurance Reasoning API
 
 ---
 
-## 🧠 How It Works
-1. **PDF/docx/eml Clause Extraction** – Extracts text and segments it into clauses
-2. **Semantic Search (FAISS + MiniLM)** – Finds most relevant clauses
-3. **LLM Reasoning (Gemini)** – Gemini Flash model reasons over matches
-4. **JWT Auth** – Secures all routes and logs user activity
+#### 🚀 Overview
+
+**Bajaj Vaani** is a FastAPI backend system that intelligently processes insurance documents and answers queries using semantic search and Gemini LLM-based reasoning.
+Built for **HackRx 6.0** by **Team Avalanche**.
 
 ---
 
-## 🧪 Tech Stack
-* **FastAPI** – Backend framework
-* **Gemini 1.5 Flash** – LLM for QA and clause reasoning
-* **SentenceTransformers + FAISS** – Vector similarity for clause search
-* **JWT** – Authentication & access control
-* **Docker** – Containerized setup
+#### ✅ Features
+
+**Document Handling**
+
+* Upload PDFs, DOCX, or EML files
+* Extract clauses using format-specific parsers
+* Store vectors using FAISS
+
+**Query & Reasoning**
+
+* `/query`: Ask any insurance-related question
+* `/reasoning`: Get LLM-powered decisions using matched clauses
+* `/upload-and-ask`: Upload a policy and instantly ask questions
+
+**Document Comparison**
+
+* `/compare`: Compare two policies clause-wise using embeddings
+
+**Authentication**
+
+* JWT-based login system
+* Dummy users stored in `users.json`
+  Example:
+
+  * `admin@example.com` / `adminpass`
+  * `user@example.com` / `userpass`
+
+**Semantic & AI Layer**
+
+* FAISS + SentenceTransformer for clause matching
+* Gemini 1.5 Flash API for contextual answers
+* JSON outputs with justification & clause references
 
 ---
 
-## 🔐 Dummy Credentials
-Stored in `auth.py`:
+#### 🧪 Tech Stack
 
-```python
-fake_users_db = {
-    "judge": {
-        "username": "judge",
-        "full_name": "Hackathon Judge",
-        "hashed_password": "$2b$12$RjGJN1TegbzUyvKqJzNDkOvRgiYcOmNfIuSW93CIDGABtZCKdB1fm",  # "demo123"
-        "role": "admin"
-    }
-}
-```
+| Component        | Technology                         |
+| ---------------- | ---------------------------------- |
+| Backend          | FastAPI                            |
+| Embedding Model  | all-MiniLM-L6-v2                   |
+| Vector Store     | FAISS                              |
+| LLM              | Gemini 1.5 Flash                   |
+| Auth             | JWT + OAuth2                       |
+| Containerization | Docker                             |
+| Doc Parsing      | PyMuPDF, python-docx, email-parser |
 
 ---
 
-## 🧪 Running Locally
+#### 📦 API Endpoints
 
-```bash
-# 1. Clone repo
-git clone https://github.com/riyaaaa19/Bajaj-Vaani.git
-cd Bajaj-Vaani
-
-# 2. Set up .env
-GOOGLE_API_KEY=your_key_here
-SECRET_KEY=your_jwt_secret
-
-# 3. Install dependencies
-pip install -r 
-
-# 4. Run the app
-uvicorn main:app --reload
-```
+| Method | Endpoint           | Purpose                                    |
+| ------ | ------------------ | ------------------------------------------ |
+| POST   | `/login`           | Authenticate user and return access token  |
+| POST   | `/query`           | Ask a general insurance question           |
+| POST   | `/reasoning`       | Clause-matching + Gemini reasoning         |
+| POST   | `/upload`          | Upload and extract clauses from a document |
+| POST   | `/upload-and-ask`  | Upload a doc and ask question in one go    |
+| POST   | `/compare`         | Compare two policy documents               |
+| GET    | `/secure-endpoint` | Protected endpoint (requires JWT)          |
 
 ---
 
-## 🐳 Docker Setup
+#### 🐳 Docker Instructions
 
-```bash
-# Build Docker image
-docker build -t bajaj-vaani-backend .
+1. **Build Docker Image**
 
-# Run the container
-docker run -p 8000:8000 --env-file .env bajaj-vaani-backend
-```
+   ```bash
+   docker build -t bajaj-vaani-backend .
+   ```
 
----
+2. **Run the Container**
 
-## 🧠 Future Scope
-
-* LangChain export for smart chains
-* Analytics dashboard with policy trends
-* Role-based admin panel
-* Support for other document types (Legal, Healthcare)
+   ```bash
+   docker run -p 8000:8000 --env-file .env bajaj-vaani-backend
+   ```
 
 ---
 
-## 📞 Contact
+#### 🧪 Local Development
 
-Team Avalanche | Built for HackRx 6.0
- | [Demo Link Coming Soon]
+1. **Clone the Repo**
+
+   ```bash
+   git clone https://github.com/riyaaaa19/Bajaj-Vaani.git
+   cd Bajaj-Vaani
+   ```
+
+2. **Configure `.env` File**
+
+   ```
+   GEMINI_API_KEY=your_gemini_key_here
+   SECRET_KEY=your_jwt_secret
+   ```
+
+3. **Install Dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the App**
+
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+---
+
+#### 🔮 Future Scope
+
+* Role-based access for admin/user
+* Logging endpoint: `/logs`
+* Policy query analytics dashboard
+* Pinecone support for vector DB
+* GitHub Actions for CI/CD
+
+---
+---
+
+## 📑 API Documentation
+
+Once the server is running, explore and test all endpoints using FastAPI's interactive Swagger UI:
+
+**Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser**
+
+This provides a user-friendly interface to try out all API routes, view request/response formats, and interact with Bajaj Vaani backend.
+
+---
+
+#### 👥 Team Avalanche – HackRx 6.0
+
+Smart insurance understanding, powered by AI.
+**\[Demo Link Coming Soon]**
+
+---
+
