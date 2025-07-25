@@ -11,8 +11,11 @@ RUN apt-get update && apt-get install -y ffmpeg build-essential && rm -rf /var/l
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY .env ./
+
 # Copy the rest of the code
 COPY . .
+
 
 # Expose port
 EXPOSE 8000
