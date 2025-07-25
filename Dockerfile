@@ -1,25 +1,22 @@
-# Use official Python image
-FROM python:3.13-slim
+# Use stable slim base
+FROM python:3.11-slim
 
-# Prevent .pyc files and enable unbuffered logs
+# Prevent bytecode + enable live logs
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set working directory
+# Set workdir
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+# Install ONLY essential system packages (remove build-essential if not compiling)
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
-# Copy and install dependencies
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
-# Copy the rest of the code
+# Copy only app code (after installing deps)
 COPY . .
 
-# Optional: for local dev only, do not include secrets in production builds
-# COPY .env .env
-
-# ✅ Start using dynamic $PORT environment variable
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run app (Render/Railway set PORT env var)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
