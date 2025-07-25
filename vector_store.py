@@ -8,7 +8,7 @@ FAISS_INDEX_PATH = "faiss_index/index.faiss"
 CLAUSES_JSON_PATH = "faiss_index/clauses.json"
 
 # Load model once
-#model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Global FAISS and metadata (lazy loaded)
 index = None
