@@ -21,8 +21,8 @@ COPY . .
 EXPOSE 8000
 
 # Set environment variables (optional, but good practice)
-ENV PORT = 8000
-ENV HOST = 0.0.0.0
+ENV PORT=8000
+ENV HOST=0.0.0.0
 
 # Start FastAPI app with Uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
