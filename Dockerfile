@@ -19,4 +19,4 @@ RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 COPY . .
 
 # Run app (Render/Railway set PORT env var)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
