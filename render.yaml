@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: bajaj-vaani
+    env: docker
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8000

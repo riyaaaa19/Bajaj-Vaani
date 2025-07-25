@@ -1,31 +1,5 @@
-# Virtual environments
-.venv/
-env/
-
-# Git files
-.git/
-.gitignore
-
-# Python cache
 __pycache__/
-*.py[cod]
-*.so
-
-# Media & docs
-*.pdf
-*.docx
-*.eml
-*.csv
-*.xlsx
-*.log
-*.md
-
-# Configs/secrets
-.env
-
-# Node, builds, extra
-node_modules/
-dist/
-build/
-cache/
-tests/
+*.pyc
+*.pyo
+*.env
+.git/
