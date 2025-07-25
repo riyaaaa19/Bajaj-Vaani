@@ -35,6 +35,10 @@ class QueryRequest(BaseModel):
 class UploadAndAskRequest(BaseModel):
     documents: str  # Blob or file URL
     questions: List[str]
+    
+@app.get("/")
+def read_root():
+    return {"message": "Server is running ✅"}
 
 @app.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
