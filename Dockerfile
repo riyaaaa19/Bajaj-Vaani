@@ -21,8 +21,5 @@ COPY . .
 # Optional: for local dev only, do not include secrets in production builds
 # COPY .env .env
 
-# Expose port (for documentation, not required by Render)
-EXPOSE 8000
-
 # ✅ Start using dynamic $PORT environment variable
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
