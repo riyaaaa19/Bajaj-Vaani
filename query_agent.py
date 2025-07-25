@@ -12,7 +12,7 @@ api_key = os.getenv("GOOGLE_API_KEY")
 print("🔑 Loaded API Key:", api_key[:8] + "..." if api_key else "❌ NOT FOUND")
 
 # Configure Gemini
-genai.configure(api_key=api_key)
+#genai.configure(api_key=api_key)
 
 # Initialize model only once
 try:
