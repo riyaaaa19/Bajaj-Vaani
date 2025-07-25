@@ -192,5 +192,10 @@ async def upload_and_ask(
     except Exception as e:
         print(f"❌ /upload-and-ask error: {e}")
         return {"error": str(e)}
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
