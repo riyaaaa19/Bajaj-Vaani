@@ -11,4 +11,4 @@ google-generativeai
 PyPDF2
 scikit-learn
 python-multipart
-#python-docx
+python-docx
