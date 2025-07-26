@@ -1,12 +1,12 @@
 fastapi
 uvicorn
-python-jose
+python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 pydantic
 typing-extensions
 sentence-transformers
-faiss-cpu
+faiss-cpu==1.7.4
 google-generativeai
 PyPDF2
 python-docx

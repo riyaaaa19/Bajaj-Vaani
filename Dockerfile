@@ -1,22 +1,31 @@
-# Use stable and lightweight base image
+# Use Python base image
 FROM python:3.11-slim
 
-# Environment settings
+# Prevent .pyc files & enable logging
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set working directory
+# Working directory
 WORKDIR /app
 
-# Install only required system packages
-RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+# Install essential system packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    libgl1 \
+    poppler-utils \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy all project files
 COPY . .
 
-# Use dynamic port (Render sets PORT env var)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}"]
+# Expose port for Render or local
+EXPOSE 10000
+
+# Run the FastAPI app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
