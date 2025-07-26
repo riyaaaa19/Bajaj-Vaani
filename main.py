@@ -17,6 +17,10 @@ import uvicorn
 from typing import Union
 from fastapi import UploadFile, File
 from fastapi import Form
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
 
@@ -57,7 +61,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.post("/ask")
 async def ask(req: QueryRequest, user=Depends(get_current_user)):
     try:
-        print(f"🔐 User: {user.username} | Query: {req.text}")
+        logging.info(f"User: {user.username} | Query: {req.text}")
         raw = query_bajaj_vaani(req.text)  # basic response
         matched = search_similar_clauses(req.text)
         explained = generate_response(req.text, matched)
@@ -66,6 +70,7 @@ async def ask(req: QueryRequest, user=Depends(get_current_user)):
             "explanation": explained
         }
     except Exception as e:
+        logging.exception("Error in /ask endpoint")
         return {"error": str(e)}
 
 @app.post("/run")
@@ -119,6 +124,7 @@ async def run(
 
         return {"answers": answers}
     except Exception as e:
+        logging.exception("Error in /run endpoint")
         return {"error": str(e)}
 
 @app.post("/compare-from-blob")
@@ -145,11 +151,18 @@ async def compare_from_blob(req: CompareBlobRequest, user=Depends(get_current_us
             "sample_matches": preview
         }
     except Exception as e:
+        logging.exception("Error in /compare-from-blob endpoint")
         return {"error": str(e)}
+
+@app.get("/health")
+def health_check():
+    return "OK", 200
 
 # --- Run App ---
 if __name__ == "__main__":
     import os
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
+    logging.info(f"Starting Uvicorn server on host 0.0.0.0 and port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
+    logging.info("Uvicorn server started")
