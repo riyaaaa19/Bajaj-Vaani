@@ -147,6 +147,10 @@ async def compare_from_blob(req: CompareBlobRequest, user=Depends(get_current_us
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/health")
+def health_check():
+    return "OK", 200
+
 # --- Run App ---
 if __name__ == "__main__":
     import os
