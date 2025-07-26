@@ -1,62 +1,62 @@
+import os
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional
-import os
-from dotenv import load_dotenv
 
-
-
+# Load environment variables
 load_dotenv()
 
-# Secret key & settings
-SECRET_KEY = "your_secret_key_here"
+# Get secrets from .env or use fallbacks
+SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRY", 60))
+AUTH_ENABLED = os.getenv("AUTH_ENABLED", "true").lower() == "true"
 
-# Dummy user db
+# Dummy user for HackRx
 fake_users_db = {
     "judge": {
         "username": "judge",
         "full_name": "Hackathon Judge",
-        "hashed_password": "$2b$12$RjGJN1TegbzUyvKqJzNDkOvRgiYcOmNfIuSW93CIDGABtZCKdB1fm",  # "demo123"
+        "hashed_password": "$2b$12$RjGJN1TegbzUyvKqJzNDkOvRgiYcOmNfIuSW93CIDGABtZCKdB1fm",  # demo123
         "role": "admin"
     }
 }
 
-# Hashing context
+# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# User model
+# User class
 class User:
     def __init__(self, username: str, role: str):
         self.username = username
         self.role = role
 
+# Verify password
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
+# Authenticate user
 def authenticate_user(username: str, password: str):
     user = fake_users_db.get(username)
     if not user or not verify_password(password, user["hashed_password"]):
         return None
     return User(username=user["username"], role=user["role"])
 
-
+# Create JWT token
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+# Get current user
 def get_current_user(token: str = Depends(oauth2_scheme)):
-    if os.getenv("AUTH_ENABLED", "false").lower() != "true":
+    if not AUTH_ENABLED:
         return User(username="anonymous", role="guest")
 
     credentials_exception = HTTPException(

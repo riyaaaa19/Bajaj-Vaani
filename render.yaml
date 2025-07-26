@@ -3,6 +3,7 @@ services:
     name: bajaj-vaani
     env: docker
     plan: free
+    autoDeploy: true  # Optional: automatically redeploy on git push
     envVars:
       - key: PORT
         value: 10000

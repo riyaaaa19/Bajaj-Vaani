@@ -1,27 +1,16 @@
 from query_agent import query_bajaj_vaani
 
-def generate_response(query, matches):
-    prompt = f"""
-You are an intelligent insurance assistant.
+def generate_response(query: str, clauses: list[str]) -> str:
+    prompt = f"""You are an expert insurance assistant. Using the following policy clauses, answer the user query accurately and briefly.
 
-User Query:
-{query}
+User Query: {query}
 
 Relevant Policy Clauses:
-{matches}
-
-Task:
-- Determine if the user's case is covered or not.
-- Look for exclusions, waiting periods (e.g., 30 days), and policy duration limits.
-- If the policy duration is too short to pass the waiting period, respond "Not Covered".
-- Give a short, factual justification.
-- Refer to specific clauses supporting your decision.
-
-Respond strictly in this JSON format:
-{{
-  "decision": "Covered" or "Not Covered",
-  "justification": "<brief explanation>",
-  "referenced_clauses": ["clause excerpt 1", "clause excerpt 2"]
-}}
 """
+
+    for idx, clause in enumerate(clauses, start=1):
+        prompt += f"{idx}. {clause}\n"
+
+    prompt += "\nGive a concise and fact-based answer based on the above clauses."
+
     return query_bajaj_vaani(prompt)
