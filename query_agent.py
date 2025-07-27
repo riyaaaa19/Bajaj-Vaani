@@ -2,23 +2,29 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# Load environment variables
-load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY")
-print("🔑 Loaded API Key:", api_key[:8] + "..." if api_key else "❌ NOT FOUND")
-genai.configure(api_key=api_key)
+# Lazy load Gemini model
+def get_model():
+    if not hasattr(get_model, "model"):
+        load_dotenv()
+        api_key = os.getenv("GOOGLE_API_KEY")
+        print("🔑 Loaded API Key:", api_key[:8] + "..." if api_key else "❌ NOT FOUND")
+        genai.configure(api_key=api_key)
 
-try:
-    model = genai.GenerativeModel("models/gemini-1.5-flash")
-    print("✅ Gemini model loaded: models/gemini-1.5-flash")
-except Exception as e:
-    print("❌ Error loading Gemini model:", e)
-    model = None
+        try:
+            get_model.model = genai.GenerativeModel("models/gemini-1.5-flash")
+            print("✅ Gemini model loaded: models/gemini-1.5-flash")
+        except Exception as e:
+            print("❌ Error loading Gemini model:", e)
+            get_model.model = None
+
+    return get_model.model
 
 # 🔹 RAW query response (no reasoning)
 def query_bajaj_vaani(user_input: str):
+    model = get_model()
     if not model:
         return "❌ Gemini model not loaded."
+
     try:
         response = model.generate_content(user_input)
         return response.text.strip()
@@ -27,8 +33,10 @@ def query_bajaj_vaani(user_input: str):
 
 # 🔁 Reasoned answer based on clauses
 def generate_response(user_question: str, context_clauses: list[str]):
+    model = get_model()
     if not model:
         return "❌ Gemini model not loaded."
+
     try:
         prompt = f"""You are a legal policy assistant.
 
