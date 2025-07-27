@@ -6,7 +6,7 @@
 
 ---
 
-🚀 Features  
+## 🚀 Features  
 🔐 JWT-secured login with hardcoded user auth  
 📄 Upload & ask multiple questions from a single policy document  
 💬 Natural language query support  
@@ -17,7 +17,7 @@
 
 ---
 
-🧪 Quick Start  
+## 🧪 Quick Start  
 🔐 1. Login  
 **POST** `/login`  
 Use the dummy judge account:
@@ -78,7 +78,7 @@ Returns: Sample clause matches + similarity scores
 
 ---
 
-⚙️ Tech Stack
+## ⚙️ Tech Stack
 
 * **Backend**: FastAPI
 * **Vector Search**: FAISS + `sentence-transformers` (MiniLM)
@@ -89,13 +89,13 @@ Returns: Sample clause matches + similarity scores
 
 ---
 
-🐳 Deployment
+## 🐳 Deployment
 ✅ App is hosted and running live on **Hugging Face Spaces**
 🔗 [https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api](https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api)
 
 ---
 
-👤 Author
+## 👤 Author
 Made with ❤️ by The Avalanche
 Built for HackRx | Powered by Google Gemini + FAISS
 
