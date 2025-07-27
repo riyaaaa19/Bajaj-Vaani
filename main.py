@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -7,17 +7,13 @@ from auth import authenticate_user, create_access_token, get_current_user
 from document_parser import extract_clauses_from_pdf, extract_clauses_from_docx, extract_clauses_from_eml
 from vector_store import search_similar_clauses, add_clauses
 from llm_reasoning import generate_response
-from query_agent import query_bajaj_vaani
 from compare import compare_policies
 import tempfile
 import requests
 import io
 import os
-import uvicorn
-from typing import Union
-from fastapi import UploadFile, File
-from fastapi import Form
 import logging
+import uvicorn
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -38,7 +34,7 @@ class QueryRequest(BaseModel):
     text: str
 
 class RunRequest(BaseModel):
-    documents: str  # Blob URL
+    documents: str
     questions: List[str]
 
 class CompareBlobRequest(BaseModel):
@@ -62,11 +58,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def ask(req: QueryRequest, user=Depends(get_current_user)):
     try:
         logging.info(f"User: {user.username} | Query: {req.text}")
-        raw = query_bajaj_vaani(req.text)  # basic response
         matched = search_similar_clauses(req.text)
         explained = generate_response(req.text, matched)
         return {
-            "raw_answer": raw,
             "explanation": explained
         }
     except Exception as e:
@@ -81,7 +75,6 @@ async def run(
     user=Depends(get_current_user)
 ):
     try:
-        # Step 1: Get file extension + content
         if upload:
             ext = upload.filename.lower().split(".")[-1]
             content = await upload.read()
@@ -97,12 +90,10 @@ async def run(
         if ext not in {"pdf", "docx", "eml"}:
             return {"error": "Unsupported file type"}
 
-        # Step 2: Save to temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
             tmp.write(content)
             path = tmp.name
 
-        # Step 3: Extract clauses
         if ext == "pdf":
             clauses = extract_clauses_from_pdf(path)
         elif ext == "docx":
@@ -115,7 +106,6 @@ async def run(
 
         add_clauses(clauses, source_file=upload.filename if upload else "blob_url")
 
-        # Step 4: Generate answers
         answers = []
         for q in questions:
             matched = search_similar_clauses(q)
@@ -160,5 +150,5 @@ def health_check():
 
 # --- Run App ---
 if __name__ == "__main__":
-   port = int(os.environ.get("PORT", 8000))
-   uvicorn.run("main:app", host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
