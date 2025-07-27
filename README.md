@@ -1,4 +1,3 @@
-
 # 🛡️ Bajaj Vaani – Chat-Based Insurance Assistant
 
 **Bajaj Vaani** is an AI-powered FastAPI assistant for insurance document analysis. It semantically processes uploaded policies (PDF, DOCX, EML), answers user queries using Gemini 1.5, compares clauses across documents, and returns contextual explanations — all via secure JWT-authenticated endpoints.
