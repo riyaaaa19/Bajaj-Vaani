@@ -1,5 +1,4 @@
 # space.yaml
-sdk: "gradio"  # still needed even if you're using FastAPI
-sdk_version: "3.0.29"
-app_file: "app/main.py"
+sdk: "docker"  # still needed even if you're using FastAPI
+app_file: "main.py"
 python_version: "3.10"
