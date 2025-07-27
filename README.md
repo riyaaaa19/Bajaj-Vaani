@@ -142,7 +142,7 @@ docker run -p 8000:8000 bajaj-vaani
 On **Render**, ensure:
 
 * Port 8000 is exposed
-* `GEMINI_API_KEY` and `JWT_SECRET_KEY` are set as environment variables
+* `GEMINI_API_KEY` is set as environment variables
 * Add `EXPOSE 8000` in `Dockerfile`
 * Use `numpy<2` for FAISS compatibility
 
