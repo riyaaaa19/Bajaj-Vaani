@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: bajaj-vaani
-    env: docker
-    plan: free
-    autoDeploy: true  # Optional: automatically redeploy on git push
