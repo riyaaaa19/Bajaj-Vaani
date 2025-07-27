@@ -1,0 +1,3 @@
+envVars:
+  - key: SENTENCE_TRANSFORMERS_HOME
+    value: /tmp/st_cache
