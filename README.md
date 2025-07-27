@@ -3,7 +3,7 @@
 
 **Bajaj Vaani** is an AI-powered FastAPI assistant for insurance document analysis. It semantically processes uploaded policies (PDF, DOCX, EML), answers user queries using Gemini 1.5, compares clauses across documents, and returns contextual explanations — all via secure JWT-authenticated endpoints.
 
-🌐 **Live App**: [https://bajaj-vaani-api.hf.space](https://bajaj-vaani-api.hf.space)
+🌐 **Live App**: [https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api](https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api)
 
 ---
 
@@ -92,7 +92,7 @@ Returns: Sample clause matches + similarity scores
 
 🐳 Deployment
 ✅ App is hosted and running live on **Hugging Face Spaces**
-🔗 [https://bajaj-vaani-api.hf.space](https://bajaj-vaani-api.hf.space)
+🔗 [https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api](https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api)
 
 ---
 
