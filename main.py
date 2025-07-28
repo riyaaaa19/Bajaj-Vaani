@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 async def lifespan(app: FastAPI):
     # Preload Gemini model on startup
     initialize_vector_store()  # Initialize the vector store
+    logging.info("✅ Startup complete, Gemini & FAISS ready")
     get_gemini_model()
     yield
     # You can add cleanup if needed later
@@ -105,5 +106,5 @@ async def unified_run(
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 10000))
     uvicorn.run(app, host="0.0.0.0", port=port)
