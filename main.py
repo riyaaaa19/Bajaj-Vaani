@@ -70,10 +70,10 @@ async def ask(req: QueryRequest, user=Depends(get_current_user)):
 
 @app.post("/run")
 async def run(
-    questions: List[str] = Form(...),
-    documents: Optional[str] = Form(None),
-    upload: Optional[UploadFile] = File(None),
-    user=Depends(get_current_user)
+    upload: Optional[UploadFile] = File(None),          # File upload (shown 1st)
+    documents: Optional[str] = Form(None),              # Blob URL (shown 2nd)
+    questions: List[str] = Form(...),                   # Questions (shown 3rd)
+    user=Depends(get_current_user)  
 ):
     try:
         # Check if file or URL is provided
