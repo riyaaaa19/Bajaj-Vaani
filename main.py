@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from auth import authenticate_user, create_access_token, get_current_user
 from document_parser import extract_clauses_from_pdf, extract_clauses_from_docx, extract_clauses_from_eml
-from vector_store import search_similar_clauses, add_clauses
+from vector_store import search_similar_clauses, add_clauses, initialize_vector_store
 from llm_reasoning import generate_response
 from compare import compare_policies
 import tempfile
@@ -15,6 +15,7 @@ import os
 import logging
 import uvicorn
 import requests, tempfile, logging
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -43,6 +44,16 @@ class CompareBlobRequest(BaseModel):
     url2: str
 
 # --- Routes ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 🟢 Startup: initialize FAISS + model
+    initialize_vector_store()
+    yield
+    # 🔴 (Optional) Shutdown logic here
+    print("🛑 App shutdown.")
+    
+app = FastAPI(lifespan=lifespan)
+
 @app.get("/")
 def root():
     return {"message": "Server is running ✅"}
