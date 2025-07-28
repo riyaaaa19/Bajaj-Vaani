@@ -37,6 +37,10 @@ class QueryRequest(BaseModel):
 def root():
     return {"message": "Server is running ✅"}
 
+@app.get("/health")
+def health_check():
+    return "OK", 200
+
 @app.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
@@ -97,5 +101,5 @@ async def unified_run(
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
