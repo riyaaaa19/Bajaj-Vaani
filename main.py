@@ -13,13 +13,16 @@ import io
 import os
 import logging
 from contextlib import asynccontextmanager
+from query_agent import get_gemini_model
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    initialize_vector_store()
+    # Preload Gemini model on startup
+    get_gemini_model()
     yield
+    # You can add cleanup if needed later
 
 app = FastAPI(lifespan=lifespan)
 

@@ -2,26 +2,32 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-def get_model():
-    if not hasattr(get_model, "model"):
-        load_dotenv()
+# Load environment variables
+load_dotenv()
+
+# --- Lazy Gemini Loader ---
+def get_gemini_model():
+    if not hasattr(get_gemini_model, "model"):
         api_key = os.getenv("GOOGLE_API_KEY")
         genai.configure(api_key=api_key)
-        get_model.model = genai.GenerativeModel("models/gemini-1.5-flash")
-    return get_model.model
+        get_gemini_model.model = genai.GenerativeModel("models/gemini-1.5-flash")
+    return get_gemini_model.model
 
-def generate_response(user_question: str, context_clauses: list[str]):
-    model = get_model()
-    try:
-        prompt = f"""You are a legal insurance assistant.
-User Question: {user_question}
+# --- Main Inference Function ---
+def generate_response(query: str, clauses: list[str]) -> str:
+    prompt = f"""You are an expert insurance assistant. Use the following policy clauses to answer the user's question accurately and concisely.
+
+User Question: {query}
 
 Relevant Clauses:
 """
-        for i, clause in enumerate(context_clauses, start=1):
-            prompt += f"{i}. {clause}\n"
+    for idx, clause in enumerate(clauses, 1):
+        prompt += f"{idx}. {clause}\n"
 
-        prompt += "\nGive a concise, fact-based answer."
+    prompt += "\nGive a clear, fact-based answer using the above context."
+
+    try:
+        model = get_gemini_model()
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
