@@ -6,27 +6,12 @@ from typing import List, Optional
 from auth import authenticate_user, create_access_token, get_current_user
 from document_parser import extract_clauses_from_pdf, extract_clauses_from_docx, extract_clauses_from_eml
 from vector_store import search_similar_clauses, add_clauses, initialize_vector_store
-from query_agent import generate_response
-import tempfile
-import requests
-import io
-import os
-import logging
-from contextlib import asynccontextmanager
-from query_agent import get_gemini_model
+from query_agent import generate_response, get_gemini_model
+import tempfile, requests, os, logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Preload Gemini model on startup
-    initialize_vector_store()  # Initialize the vector store
-    logging.info("✅ Startup complete, Gemini & FAISS ready")
-    get_gemini_model()
-    yield
-    # You can add cleanup if needed later
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +39,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     token = create_access_token(data={"sub": user.username, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
+# ⏱️ Lazy init globals
+vector_initialized = False
+gemini_model = None
+
 @app.post("/run")
 async def unified_run(
     documents: Optional[str] = Form(None),
@@ -61,7 +50,20 @@ async def unified_run(
     questions: List[str] = Form(...),
     user=Depends(get_current_user)
 ):
+    global vector_initialized, gemini_model
     try:
+        # 🧠 Lazy initialize vector store
+        if not vector_initialized:
+            initialize_vector_store()
+            logging.info("✅ Vector store initialized")
+            vector_initialized = True
+
+        # ⚡ Lazy load Gemini model
+        if gemini_model is None:
+            gemini_model = get_gemini_model()
+            logging.info("✅ Gemini model loaded")
+
+        # 📄 Handle file
         if upload:
             ext = upload.filename.lower().split(".")[-1]
             content = await upload.read()
@@ -81,6 +83,7 @@ async def unified_run(
             tmp.write(content)
             path = tmp.name
 
+        # 📑 Extract clauses
         if ext == "pdf":
             clauses = extract_clauses_from_pdf(path)
         elif ext == "docx":
@@ -93,6 +96,7 @@ async def unified_run(
 
         add_clauses(clauses, source_file=upload.filename if upload else documents)
 
+        # 💬 Answer questions
         answers = []
         for question in questions:
             matched = search_similar_clauses(question)
@@ -100,10 +104,11 @@ async def unified_run(
             answers.append(answer)
 
         return {"answers": answers}
+
     except Exception as e:
         logging.exception("❌ Error in /run")
         return {"error": str(e)}
-    
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
