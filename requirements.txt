@@ -1,15 +1,26 @@
+# Core Backend
 fastapi
 uvicorn[standard]
+pydantic
+python-dotenv
+
+# Auth
 python-jose
 passlib[bcrypt]
-python-dotenv
-pydantic
-typing-extensions
-sentence-transformers
-faiss-cpu
-google-generativeai
+
+# File Uploads & Parsing
+python-multipart
 PyPDF2
 python-docx
-python-multipart
+
+# Embedding & Semantic Search
+sentence-transformers
+faiss-cpu
 scikit-learn
 numpy<2.0.0
+
+# LLM Integration
+google-generativeai
+
+# Typing (optional for old Python)
+typing-extensions
