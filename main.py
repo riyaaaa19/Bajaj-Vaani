@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from auth import authenticate_user, create_access_token, get_current_user
 from document_parser import extract_clauses_from_pdf, extract_clauses_from_docx, extract_clauses_from_eml
 from vector_store import search_similar_clauses, add_clauses
@@ -14,6 +14,7 @@ import io
 import os
 import logging
 import uvicorn
+import requests, tempfile, logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -69,12 +70,13 @@ async def ask(req: QueryRequest, user=Depends(get_current_user)):
 
 @app.post("/run")
 async def run(
-    documents: str = Form(None),
-    upload: UploadFile = File(None),
     questions: List[str] = Form(...),
+    documents: Optional[str] = Form(None),
+    upload: Optional[UploadFile] = File(None),
     user=Depends(get_current_user)
 ):
     try:
+        # Check if file or URL is provided
         if upload:
             ext = upload.filename.lower().split(".")[-1]
             content = await upload.read()
@@ -87,13 +89,16 @@ async def run(
         else:
             return {"error": "Please provide a file or blob URL."}
 
+        # Only allow supported file types
         if ext not in {"pdf", "docx", "eml"}:
             return {"error": "Unsupported file type"}
 
+        # Save to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
             tmp.write(content)
             path = tmp.name
 
+        # Extract clauses based on file type
         if ext == "pdf":
             clauses = extract_clauses_from_pdf(path)
         elif ext == "docx":
@@ -104,7 +109,7 @@ async def run(
         if not clauses:
             return {"error": "No valid clauses extracted"}
 
-        add_clauses(clauses, source_file=upload.filename if upload else "blob_url")
+        add_clauses(clauses, source_file=upload.filename if upload else documents)
 
         answers = []
         for q in questions:
