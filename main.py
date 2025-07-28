@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Preload Gemini model on startup
+    initialize_vector_store()  # Initialize the vector store
     get_gemini_model()
     yield
     # You can add cleanup if needed later
