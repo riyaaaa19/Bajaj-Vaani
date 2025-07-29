@@ -1,33 +1,25 @@
-import os
 import google.generativeai as genai
-from dotenv import load_dotenv
-from typing import List
+import numpy as np
+import faiss
+from vector_store import embedder
+import os
 
-load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-def get_gemini_model():
-    if not hasattr(get_gemini_model, "model"):
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        get_gemini_model.model = genai.GenerativeModel("models/gemini-1.5-flash")
-    return get_gemini_model.model
-
-def generate_response(question: str, clauses: List[str]) -> str:
-    if not clauses:
-        return "Not found."
+def get_llm_answer(question: str, index_data):
+    q_embedding = embedder.encode([question], convert_to_numpy=True)
+    D, I = index_data["index"].search(q_embedding, k=3)
+    matched_clauses = [index_data["clauses"][i] for i in I[0]]
 
     prompt = (
-        f"You are an insurance policy assistant. Use the following clauses to answer the question below.\n\n"
-        f"Question: {question}\n\n"
-        f"Relevant Clauses:\n"
+        "Based on the following clauses from the insurance document, answer the question as accurately as possible.\n\n"
+        + "\n\n".join(matched_clauses)
+        + f"\n\nQuestion: {question}\nAnswer:"
     )
-    for idx, clause in enumerate(clauses[:5], 1):
-        prompt += f"{idx}. {clause.strip()[:500]}\n"
-
-    prompt += "\nGive a concise, factual answer using clause language. Say 'Not found.' if not answerable."
 
     try:
-        model = get_gemini_model()
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
-        return f"❌ Gemini Error: {str(e)}"
+        return f"Error: {str(e)}"

@@ -1,54 +1,53 @@
 import os
-import json
-import faiss
-from typing import List
+import requests
+import tempfile
+import fitz  # PyMuPDF
+import docx
+from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
-import logging
+import faiss
+import numpy as np
 
-INDEX_DIR = "faiss_index"
-FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "index.faiss")
-CLAUSES_JSON_PATH = os.path.join(INDEX_DIR, "clauses.json")
+embedder = SentenceTransformer("all-MiniLM-L6-v2")  # 80MB and fast
 
-model, index, metadata = None, None, []
+def extract_text_from_url(blob_url: str) -> str:
+    response = requests.get(blob_url)
+    response.raise_for_status()
+    ext = blob_url.split(".")[-1].split("?")[0]
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
+        tmp.write(response.content)
+        tmp_path = tmp.name
 
-def initialize_vector_store():
-    global model, index, metadata
-    logging.info("🔁 Initializing vector store")
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-
-    if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(CLAUSES_JSON_PATH):
-        index = faiss.read_index(FAISS_INDEX_PATH)
-        with open(CLAUSES_JSON_PATH, "r", encoding="utf-8") as f:
-            metadata = json.load(f)
+    text = ""
+    if ext == "pdf":
+        reader = PdfReader(tmp_path)
+        text = "\n".join(page.extract_text() for page in reader.pages if page.extract_text())
+    elif ext == "docx":
+        doc = docx.Document(tmp_path)
+        text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+    elif ext == "eml":
+        with open(tmp_path, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
     else:
-        index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
-        metadata = []
+        raise ValueError("Unsupported file type")
 
-def search_similar_clauses(query: str, top_k: int = 5) -> List[str]:
-    if index is None or index.ntotal == 0:
-        return []
-    query_vector = model.encode([query])
-    distances, indices = index.search(query_vector, top_k)
-    return [metadata[i]["text"] for i in indices[0] if i < len(metadata)]
+    os.unlink(tmp_path)
+    return text
 
-def add_clauses(new_clauses: List[str], source_file: str = "input"):
-    global model, index, metadata
-    if not new_clauses:
-        return
+def split_into_clauses(text: str) -> List[str]:
+    return [clause.strip() for clause in text.split("\n") if clause.strip()]
 
-    os.makedirs(INDEX_DIR, exist_ok=True)
-    existing_texts = set(m["text"] for m in metadata)
-    unique_clauses = [c for c in new_clauses if c.strip()[:500] not in existing_texts]
+def index_documents(blob_url: str):
+    text = extract_text_from_url(blob_url)
+    clauses = split_into_clauses(text)
 
-    if not unique_clauses:
-        return
+    embeddings = embedder.encode(clauses, convert_to_numpy=True)
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(embeddings)
 
-    vectors = model.encode(unique_clauses)
-    index.add(vectors)
-
-    new_meta = [{"text": clause[:500], "source_file": source_file} for clause in unique_clauses]
-    metadata.extend(new_meta)
-
-    faiss.write_index(index, FAISS_INDEX_PATH)
-    with open(CLAUSES_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    return {
+        "index": index,
+        "clauses": clauses,
+        "embeddings": embeddings
+    }

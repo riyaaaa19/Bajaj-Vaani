@@ -1,37 +1,35 @@
+import requests
+import tempfile
+import mimetypes
 from PyPDF2 import PdfReader
 from docx import Document
-from email import policy
-from email.parser import BytesParser
 
-MIN_CLAUSE_LENGTH = 30
+def fetch_and_save_document(url: str):
+    response = requests.get(url)
+    response.raise_for_status()
+    ext = mimetypes.guess_extension(response.headers.get("Content-Type", "application/pdf"))
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        tmp.write(response.content)
+        return tmp.name
 
-def extract_clauses_from_pdf(file_path):
+def extract_text_from_pdf(path: str):
     try:
-        reader = PdfReader(file_path)
-        text = "\n".join([p.extract_text() or "" for p in reader.pages])
-        return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
-    except Exception as e:
-        print(f"❌ PDF parse failed: {e}")
-        return []
+        reader = PdfReader(path)
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception:
+        return ""
 
-def extract_clauses_from_docx(file_path):
+def extract_text_from_docx(path: str):
     try:
-        doc = Document(file_path)
-        text = "\n".join(p.text for p in doc.paragraphs)
-        return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
-    except Exception as e:
-        print(f"❌ DOCX parse failed: {e}")
-        return []
+        doc = Document(path)
+        return "\n".join(paragraph.text for paragraph in doc.paragraphs)
+    except Exception:
+        return ""
 
-def extract_clauses_from_eml(file_path):
-    try:
-        with open(file_path, "rb") as f:
-            msg = BytesParser(policy=policy.default).parse(f)
-            body = msg.get_body(preferencelist=('plain'))
-            if not body:
-                return []
-            text = body.get_content()
-            return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
-    except Exception as e:
-        print(f"❌ EML parse failed: {e}")
-        return []
+def parse_document(path: str):
+    if path.endswith(".pdf"):
+        return extract_text_from_pdf(path)
+    elif path.endswith(".docx"):
+        return extract_text_from_docx(path)
+    else:
+        return ""
