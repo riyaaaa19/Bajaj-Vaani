@@ -1,26 +1,40 @@
 import os
 import pickle
-import faiss
-from sentence_transformers import SentenceTransformer
-from vector_store import get_clause_chunks
+from document_parser import parse_documents_from_path
+from vector_store import build_faiss_index
 
-INDEX_FILE = "index/faiss.index"
-METADATA_FILE = "index/metadata.pkl"
-MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+DOCUMENT_FOLDER = "data/policy_docs"
+INDEX_OUTPUT_PATH = "faiss_index/index.pkl"
 
-def build_faiss_index(texts):
-    embeddings = MODEL.encode(texts, convert_to_tensor=False)
-    index = faiss.IndexFlatL2(len(embeddings[0]))
-    index.add(embeddings)
-    return index, embeddings
+def collect_document_paths(folder):
+    valid_exts = (".pdf", ".docx", ".eml")
+    doc_paths = []
+    for root, _, files in os.walk(folder):
+        for file in files:
+            if file.lower().endswith(valid_exts):
+                doc_paths.append(os.path.join(root, file))
+    return doc_paths
 
-def train_faiss_from_documents(documents):
-    all_clauses = get_clause_chunks(documents)
-    texts = list(set([c["text"] for c in all_clauses]))  # deduplicated
-    index, _ = build_faiss_index(texts)
+def main():
+    doc_paths = collect_document_paths(DOCUMENT_FOLDER)
+    if not doc_paths:
+        print(f"No documents found in {DOCUMENT_FOLDER}")
+        return
 
-    os.makedirs("index", exist_ok=True)
-    faiss.write_index(index, INDEX_FILE)
-    with open(METADATA_FILE, "wb") as f:
-        pickle.dump(texts, f)
-    return len(texts)
+    print(f"Found {len(doc_paths)} documents. Parsing and indexing...")
+
+    # Parse and split clauses
+    all_clauses = parse_documents_from_path(doc_paths)
+
+    # Build FAISS index
+    index_data = build_faiss_index(all_clauses)
+
+    # Save to disk
+    os.makedirs(os.path.dirname(INDEX_OUTPUT_PATH), exist_ok=True)
+    with open(INDEX_OUTPUT_PATH, "wb") as f:
+        pickle.dump(index_data, f)
+
+    print(f"✅ Index saved to {INDEX_OUTPUT_PATH} with {len(index_data['clauses'])} clauses.")
+
+if __name__ == "__main__":
+    main()
