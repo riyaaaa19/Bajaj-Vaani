@@ -2,7 +2,8 @@ import os
 import tempfile
 import requests
 import hashlib
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import List
@@ -19,6 +20,21 @@ from auth import authenticate_user, create_access_token
 
 app = FastAPI()
 
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"},
+    )
+
+@app.get("/")
+def root():
+    return {"message": "Bajaj-Vaani is live. Use /docs for Swagger UI."}
+
+@app.get("/api/v1/health")
+def health():
+    return {"status": "bajaj-vaani API is live"}
+
 class QueryRequest(BaseModel):
     documents: str
     questions: List[str]
@@ -34,10 +50,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": user.username, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
-
-@app.get("/api/v1/health")
-def health():
-    return {"status": "bajaj-vaani API is live"}
 
 def extract_and_index_clauses(blob_url: str):
     try:
@@ -84,4 +96,4 @@ def run_query(request: QueryRequest):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
