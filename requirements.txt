@@ -6,9 +6,6 @@ uvicorn==0.35.0
 PyPDF2==3.0.1
 python-docx==1.2.0
 
-# Email parsing
-email-parser==0.1.4
-
 # Google Gemini SDK
 google-generativeai==0.8.5
 python-dotenv==1.1.1
