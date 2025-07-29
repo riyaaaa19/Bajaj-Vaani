@@ -1,12 +1,12 @@
 import os
-import json
 import faiss
+import pickle
 from typing import List, Tuple
 from sentence_transformers import SentenceTransformer
 
-INDEX_DIR = "faiss_index"
-FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "index.faiss")
-CLAUSES_JSON_PATH = os.path.join(INDEX_DIR, "clauses.json")
+faiss_path = "faiss_index"
+index_file = os.path.join(faiss_path, "faiss.index")
+meta_file = os.path.join(faiss_path, "faiss.meta")
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 index = None
@@ -14,52 +14,44 @@ metadata = []
 
 def initialize_vector_store():
     global index, metadata
-    if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(CLAUSES_JSON_PATH):
-        index = faiss.read_index(FAISS_INDEX_PATH)
-        with open(CLAUSES_JSON_PATH, "r", encoding="utf-8") as f:
-            metadata = json.load(f)
-    else:
-        index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
+    if not os.path.exists(index_file):
+        os.makedirs(faiss_path, exist_ok=True)
+        index = faiss.IndexFlatL2(384)
         metadata = []
-
-def search_similar_clauses(query: str, top_k: int = 5) -> List[str]:
-    if index is None or index.ntotal == 0:
-        return []
-    query_vector = model.encode([query])
-    distances, indices = index.search(query_vector, top_k)
-    return [metadata[i]["text"] for i in indices[0] if i < len(metadata)]
-
-def add_clauses(new_clauses: List[str], source_file: str = "input"):
-    global index, metadata
-    os.makedirs(INDEX_DIR, exist_ok=True)
-
-    existing_texts = set(m["text"] for m in metadata)
-    unique_clauses = [c.strip()[:500] for c in new_clauses if c.strip()[:500] not in existing_texts]
-
-    if not unique_clauses:
         return
+    index = faiss.read_index(index_file)
+    with open(meta_file, "rb") as f:
+        metadata = pickle.load(f)
 
-    vectors = model.encode(unique_clauses)
+def add_clauses(clauses: List[str], source_file: str):
+    vectors = model.encode(clauses, show_progress_bar=False)
     index.add(vectors)
+    metadata.extend([(clause, source_file) for clause in clauses])
+    save_vector_store()
 
-    new_meta = [{"text": clause, "source_file": source_file} for clause in unique_clauses]
-    metadata.extend(new_meta)
-
-    faiss.write_index(index, FAISS_INDEX_PATH)
-    with open(CLAUSES_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
-
-def build_faiss_index(all_documents: List[Tuple[str, List[str]]]):
+def build_faiss_index(clauses: List[Tuple[str, str]], batch_size: int = 100):
+    os.makedirs(faiss_path, exist_ok=True)
     global index, metadata
-    index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
+    index = faiss.IndexFlatL2(384)
     metadata = []
 
-    for filename, clauses in all_documents:
-        vectors = model.encode([c[:500] for c in clauses])
+    for i in range(0, len(clauses), batch_size):
+        batch = clauses[i:i + batch_size]
+        texts, sources = zip(*batch)
+        vectors = model.encode(texts, show_progress_bar=False)
         index.add(vectors)
-        metadata.extend([{"text": c[:500], "source_file": filename} for c in clauses])
+        metadata.extend(zip(texts, sources))
 
-    os.makedirs(INDEX_DIR, exist_ok=True)
-    faiss.write_index(index, FAISS_INDEX_PATH)
-    with open(CLAUSES_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    save_vector_store()
+
+def save_vector_store():
+    faiss.write_index(index, index_file)
+    with open(meta_file, "wb") as f:
+        pickle.dump(metadata, f)
+
+def search_similar_clauses(query: str, top_k: int = 5) -> List[str]:
+    if index is None:
+        initialize_vector_store()
+    vector = model.encode([query])
+    D, I = index.search(vector, top_k)
+    return [metadata[i][0] for i in I[0] if i < len(metadata)]
