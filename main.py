@@ -20,6 +20,11 @@ from auth import authenticate_user, create_access_token
 
 app = FastAPI()
 
+# ✅ Ensure vector store is initialized only once
+@app.on_event("startup")
+def startup_event():
+    initialize_vector_store()
+
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -82,7 +87,6 @@ def extract_and_index_clauses(blob_url: str):
 
 @app.post("/api/v1/bajaj-vaani/run", response_model=List[QueryResponse])
 def run_query(request: QueryRequest):
-    initialize_vector_store()
     extract_and_index_clauses(request.documents)
 
     def process(q: str):
@@ -90,7 +94,8 @@ def run_query(request: QueryRequest):
         answer = generate_response(q, matched)
         return {"question": q, "answer": answer}
 
-    with ThreadPoolExecutor() as pool:
+    # ✅ Limit concurrent workers to reduce memory load
+    with ThreadPoolExecutor(max_workers=2) as pool:
         return list(pool.map(process, request.questions))
 
 if __name__ == "__main__":
