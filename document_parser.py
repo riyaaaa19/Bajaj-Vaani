@@ -1,67 +1,57 @@
 import os
-import re
-import fitz  # PyMuPDF
-import docx
-import email
+from PyPDF2 import PdfReader
+from docx import Document
+from email import policy
+from email.parser import BytesParser
 from bs4 import BeautifulSoup
+from typing import List, Tuple
 
-def parse_pdf(path):
-    text = ""
+MIN_CLAUSE_LENGTH = 30
+
+def extract_clauses_from_pdf(file_path):
     try:
-        with fitz.open(path) as doc:
-            for page in doc:
-                text += page.get_text()
+        reader = PdfReader(file_path)
+        text = "\n".join([p.extract_text() or "" for p in reader.pages])
+        return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
     except Exception as e:
-        print(f"[PDF ERROR] {path}: {e}")
-    return text
+        print(f"❌ PDF parse failed: {e}")
+        return []
 
-def parse_docx(path):
-    text = ""
+def extract_clauses_from_docx(file_path):
     try:
-        doc = docx.Document(path)
-        text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+        doc = Document(file_path)
+        text = "\n".join(p.text for p in doc.paragraphs)
+        return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
     except Exception as e:
-        print(f"[DOCX ERROR] {path}: {e}")
-    return text
+        print(f"❌ DOCX parse failed: {e}")
+        return []
 
-def parse_eml(path):
-    text = ""
+def extract_clauses_from_eml(file_path):
     try:
-        with open(path, "rb") as f:
-            msg = email.message_from_binary_file(f)
-            for part in msg.walk():
-                if part.get_content_type() == "text/plain":
-                    text += part.get_payload(decode=True).decode(errors="ignore")
-                elif part.get_content_type() == "text/html":
-                    soup = BeautifulSoup(part.get_payload(decode=True), "html.parser")
-                    text += soup.get_text()
+        with open(file_path, "rb") as f:
+            msg = BytesParser(policy=policy.default).parse(f)
+            body = msg.get_body(preferencelist=('plain'))
+            text = body.get_content() if body else ""
+            return [c.strip() for c in text.split("\n\n") if len(c.strip()) > MIN_CLAUSE_LENGTH]
     except Exception as e:
-        print(f"[EML ERROR] {path}: {e}")
-    return text
+        print(f"❌ EML parse failed: {e}")
+        return []
 
-def extract_clauses(text):
-    # Basic split on newlines and bullet points
-    raw_clauses = re.split(r"\n+|(?<=\.)(?=\s+[A-Z0-9])|•", text)
-    return [c.strip() for c in raw_clauses if len(c.strip()) > 30]
+def parse_documents_from_path(folder_path: str) -> List[Tuple[str, List[str]]]:
+    all_clauses = []
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        suffix = filename.lower().split(".")[-1]
 
-def parse_documents_from_path(paths):
-    clauses = []
-    seen = set()
-
-    for path in paths:
-        ext = os.path.splitext(path)[-1].lower()
-        if ext == ".pdf":
-            content = parse_pdf(path)
-        elif ext == ".docx":
-            content = parse_docx(path)
-        elif ext == ".eml":
-            content = parse_eml(path)
+        if suffix == "pdf":
+            clauses = extract_clauses_from_pdf(file_path)
+        elif suffix == "docx":
+            clauses = extract_clauses_from_docx(file_path)
+        elif suffix == "eml":
+            clauses = extract_clauses_from_eml(file_path)
         else:
             continue
 
-        for clause in extract_clauses(content):
-            if clause not in seen:
-                seen.add(clause)
-                clauses.append(clause)
-
-    return clauses
+        if clauses:
+            all_clauses.append((filename, clauses))
+    return all_clauses
