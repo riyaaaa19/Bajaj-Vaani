@@ -4,18 +4,15 @@ import faiss
 from sentence_transformers import SentenceTransformer
 import logging
 
-# 🔧 Paths
 INDEX_DIR = "faiss_index"
 FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "index.faiss")
 CLAUSES_JSON_PATH = os.path.join(INDEX_DIR, "clauses.json")
 
-# 🧠 Globals
 model, index, metadata = None, None, []
 
-# 🚀 Initialize vector store (lazy)
 def initialize_vector_store():
     global model, index, metadata
-    logging.info("🔁 Initializing FAISS and model...")
+    logging.info("🔁 Initializing FAISS and SentenceTransformer...")
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
     if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(CLAUSES_JSON_PATH):
@@ -28,7 +25,6 @@ def initialize_vector_store():
         metadata = []
         logging.info("🆕 Created new FAISS index")
 
-# 🔍 Search top-k semantically matched clauses
 def search_similar_clauses(query: str, top_k: int = 5) -> list[str]:
     global model, index, metadata
     if index is None or index.ntotal == 0:
@@ -37,7 +33,6 @@ def search_similar_clauses(query: str, top_k: int = 5) -> list[str]:
     distances, indices = index.search(query_vector, top_k)
     return [metadata[i]["text"] for i in indices[0] if i < len(metadata)]
 
-# ➕ Add clauses to FAISS index (truncate to save tokens)
 def add_clauses(new_clauses: list[str], source_file: str = "input"):
     global model, index, metadata
     if not new_clauses:
@@ -47,7 +42,6 @@ def add_clauses(new_clauses: list[str], source_file: str = "input"):
     vectors = model.encode(new_clauses)
     index.add(vectors)
 
-    # Limit clause length for efficiency
     new_meta = [
         {"text": clause[:500], "source_file": source_file}
         for clause in new_clauses

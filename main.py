@@ -1,121 +1,113 @@
-from fastapi import FastAPI, Depends, HTTPException, Form
-from fastapi.middleware.cors import CORSMiddleware
+import os
+import tempfile
+import requests
+from fastapi import FastAPI, Request, UploadFile, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import List
-from auth import authenticate_user, create_access_token, get_current_user
+from concurrent.futures import ThreadPoolExecutor
+
 from document_parser import (
     extract_clauses_from_pdf,
     extract_clauses_from_docx,
-    extract_clauses_from_eml,
+    extract_clauses_from_eml
 )
-from vector_store import (
-    search_similar_clauses,
-    add_clauses,
-    initialize_vector_store,
-)
-from query_agent import generate_response, get_gemini_model
-import tempfile, requests, os, logging
-from concurrent.futures import ThreadPoolExecutor
+from vector_store import initialize_vector_store, add_clauses, search_similar_clauses
+from llm_reasoning import generate_response
+from auth import authenticate_user, create_access_token
 
-# ✅ Setup Logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-# ✅ FastAPI App Initialization
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ----------------------
+# 🔄 Data Models
+# ----------------------
+class QueryRequest(BaseModel):
+    documents: str  # Blob URL
+    questions: List[str]
 
-# ✅ Login Endpoint (Token Auth)
-@app.post("/login")
+# ----------------------
+# 🔧 Startup
+# ----------------------
+initialize_vector_store()
+
+# ----------------------
+# 📥 Download & Parse
+# ----------------------
+def download_blob(blob_url: str) -> str:
+    response = requests.get(blob_url)
+    suffix = ".pdf" if ".pdf" in blob_url else (".docx" if ".docx" in blob_url else ".eml")
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    temp_file.write(response.content)
+    temp_file.close()
+    return temp_file.name
+
+# ----------------------
+# 🤖 Process Query
+# ----------------------
+def process_question(query: str, clauses: List[str]) -> dict:
+    trimmed = [clause.strip()[:500] for clause in clauses if clause.strip()]
+
+    # 🔍 Clause-based fallback answer
+    for clause in trimmed:
+        if any(word in clause.lower() for word in query.lower().split()):
+            return {
+                "question": query,
+                "answer": clause.strip(),
+                "source": "clause",
+                "matched_clauses": clauses
+            }
+
+    # 🤖 Fall back to Gemini
+    answer = generate_response(query, clauses)
+    return {
+        "question": query,
+        "answer": answer,
+        "source": "gemini",
+        "matched_clauses": clauses
+    }
+    
+# ----------------------
+# 🔐 Login Endpoint (JWT)
+# ----------------------
+@app.post("/api/v1/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    token = create_access_token(data={"sub": user.username, "role": user.role})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+    token = create_access_token({"sub": user.username, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
-# ✅ Health Check
-@app.get("/health")
+
+# ----------------------
+# 🚀 Main API Endpoint
+# ----------------------
+@app.post("/api/v1/bajaj-vaani/run")
+async def run_query(req: QueryRequest):
+    file_path = download_blob(req.documents)
+
+    if file_path.endswith(".pdf"):
+        clauses = extract_clauses_from_pdf(file_path)
+    elif file_path.endswith(".docx"):
+        clauses = extract_clauses_from_docx(file_path)
+    elif file_path.endswith(".eml"):
+        clauses = extract_clauses_from_eml(file_path)
+    else:
+        return {"error": "Unsupported file type"}
+
+    add_clauses(clauses, source_file=os.path.basename(file_path))
+
+    # 🔍 Parallel question processing
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(lambda q: process_question(q, search_similar_clauses(q)), req.questions))
+
+    return {"answers": results}
+
+# ----------------------
+# 🩺 Health Check
+# ----------------------
+@app.get("/api/v1/health")
 def health_check():
-    return {"status": "ok"}, 200
-
-# ✅ Lazy Load Globals
-vector_initialized = False
-model_loaded = False
-
-# ✅ Core Document-QA Endpoint
-@app.post("/run")
-async def run_query(
-    documents: str = Form(...),
-    questions: List[str] = Form(...),
-    user=Depends(get_current_user)
-):
-    global vector_initialized, model_loaded
-
-    try:
-        # 🧠 Lazy Init FAISS
-        if not vector_initialized:
-            initialize_vector_store()
-            vector_initialized = True
-
-        # ⚡ Lazy Init Gemini Model
-        if not model_loaded:
-            get_gemini_model()
-            model_loaded = True
-
-        # 🔗 Download document from Blob URL
-        ext = documents.lower().split(".")[-1].split("?")[0]
-        r = requests.get(documents)
-        if r.status_code != 200:
-            return {"error": "Failed to fetch document"}
-        content = r.content
-
-        # 🗂 Save and parse file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
-            tmp.write(content)
-            path = tmp.name
-
-        if ext == "pdf":
-            clauses = extract_clauses_from_pdf(path)
-        elif ext == "docx":
-            clauses = extract_clauses_from_docx(path)
-        elif ext == "eml":
-            clauses = extract_clauses_from_eml(path)
-        else:
-            return {"error": "Unsupported file type"}
-
-        if not clauses:
-            return {"error": "No valid clauses extracted"}
-
-        # ➕ Add to FAISS
-        add_clauses(clauses, source_file=documents)
-
-        # ⚡ Answer each question in parallel
-        def process_question(q):
-            matched = search_similar_clauses(q)  # top_k = 5 internally
-            answer = generate_response(q, matched)  # Gemini Flash
-            return {
-                "question": q,
-                "answer": answer,
-                "matched_clauses": matched
-            }
-
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(process_question, questions))
-
-        return {"answers": results}
-
-    except Exception as e:
-        logging.exception("❌ Error during /run")
-        return {"error": str(e)}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    return {"status": "ok", "message": "Bajaj Vaani is healthy"}
