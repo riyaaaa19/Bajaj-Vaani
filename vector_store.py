@@ -1,8 +1,9 @@
 import os
 import json
 import faiss
-from sentence_transformers import SentenceTransformer
 from typing import List
+from sentence_transformers import SentenceTransformer
+import logging
 
 INDEX_DIR = "faiss_index"
 FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "index.faiss")
@@ -12,7 +13,9 @@ model, index, metadata = None, None, []
 
 def initialize_vector_store():
     global model, index, metadata
+    logging.info("🔁 Initializing vector store")
     model = SentenceTransformer("all-MiniLM-L6-v2")
+
     if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(CLAUSES_JSON_PATH):
         index = faiss.read_index(FAISS_INDEX_PATH)
         with open(CLAUSES_JSON_PATH, "r", encoding="utf-8") as f:
@@ -22,7 +25,6 @@ def initialize_vector_store():
         metadata = []
 
 def search_similar_clauses(query: str, top_k: int = 5) -> List[str]:
-    global model, index, metadata
     if index is None or index.ntotal == 0:
         return []
     query_vector = model.encode([query])
@@ -35,16 +37,17 @@ def add_clauses(new_clauses: List[str], source_file: str = "input"):
         return
 
     os.makedirs(INDEX_DIR, exist_ok=True)
+    existing_texts = set(m["text"] for m in metadata)
+    unique_clauses = [c for c in new_clauses if c.strip()[:500] not in existing_texts]
 
-    existing = set(m["text"] for m in metadata)
-    unique_clauses = [c for c in new_clauses if c[:500] not in existing]
     if not unique_clauses:
         return
 
     vectors = model.encode(unique_clauses)
     index.add(vectors)
 
-    metadata.extend([{"text": clause[:500], "source_file": source_file} for clause in unique_clauses])
+    new_meta = [{"text": clause[:500], "source_file": source_file} for clause in unique_clauses]
+    metadata.extend(new_meta)
 
     faiss.write_index(index, FAISS_INDEX_PATH)
     with open(CLAUSES_JSON_PATH, "w", encoding="utf-8") as f:

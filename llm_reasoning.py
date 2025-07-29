@@ -16,16 +16,14 @@ def generate_response(question: str, clauses: List[str]) -> str:
         return "Not found."
 
     prompt = (
-        f"You are an expert insurance assistant.\n"
-        f"Only use the clauses below to answer the question.\n\n"
-        f"User Question: {question}\n\n"
-        f"Policy Clauses:\n"
+        f"You are an insurance policy assistant. Use the following clauses to answer the question below.\n\n"
+        f"Question: {question}\n\n"
+        f"Relevant Clauses:\n"
     )
-
     for idx, clause in enumerate(clauses[:5], 1):
         prompt += f"{idx}. {clause.strip()[:500]}\n"
 
-    prompt += "\nGive a short, factual answer using clause wording. Say 'Not found' only if clearly irrelevant."
+    prompt += "\nGive a concise, factual answer using clause language. Say 'Not found.' if not answerable."
 
     try:
         model = get_gemini_model()
