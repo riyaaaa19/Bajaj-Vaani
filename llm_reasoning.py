@@ -19,13 +19,16 @@ def generate_response(query: str, clauses: List[str]) -> str:
         return "No relevant clauses found to answer the question."
 
     trimmed_clauses = [clause.strip()[:500] for clause in clauses if clause.strip()]
+    query_lower = query.lower().split()
 
-    # 🔍 Fallback: Try exact clause match
+    # 🔍 Prefer clause match if overlap > 75%
     for clause in trimmed_clauses:
-        if any(word in clause.lower() for word in query.lower().split()):
-            return clause.strip()
+        match_score = sum(word in clause.lower() for word in query_lower)
+        if match_score / len(query_lower) > 0.75:
+            return clause.strip()[:300]  # return summarized clause
 
-    prompt = f"""You are an expert insurance policy assistant. Use ONLY the clauses below to answer the user's question. DO NOT assume anything. Quote or paraphrase based on the given clauses only.
+    # 🤖 Gemini fallback
+    prompt = f"""You are an expert insurance policy assistant. Use ONLY the clauses below to answer the user's question. DO NOT assume anything.
 
 User Question:
 {query}
@@ -37,12 +40,18 @@ Relevant Policy Clauses:
 
     prompt += """
 
-Respond with a short, accurate answer using the exact wording from the clauses when possible. Do NOT invent information. Say 'Not found' if unsure.
+Summarize the answer in one or two sentences only. Use exact language from the clauses if possible. Do NOT invent information. Say 'Not found' if unsure.
 """
 
     try:
         model = get_gemini_model()
         response = model.generate_content(prompt)
-        return response.text.strip()
+        raw = response.text.strip()
+
+        # ✂️ Force truncation to max 2 sentences
+        sentences = raw.split('. ')
+        short_summary = '. '.join(sentences[:2])
+        return short_summary.strip().rstrip('.') + '.'
+
     except Exception as e:
         return f"❌ Gemini Error: {str(e)}"

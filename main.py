@@ -46,10 +46,11 @@ def download_blob(blob_url: str) -> str:
 # ----------------------
 def process_question(query: str, clauses: List[str]) -> dict:
     trimmed = [clause.strip()[:500] for clause in clauses if clause.strip()]
+    query_lower = query.lower()
 
-    # 🔍 Clause-based fallback answer
+    # ✅ Prefer clause-based if it matches all key words
     for clause in trimmed:
-        if any(word in clause.lower() for word in query.lower().split()):
+        if all(word in clause.lower() for word in query_lower.split()):
             return {
                 "question": query,
                 "answer": clause.strip(),
@@ -57,7 +58,7 @@ def process_question(query: str, clauses: List[str]) -> dict:
                 "matched_clauses": clauses
             }
 
-    # 🤖 Fall back to Gemini
+    # 🤖 Use Gemini with strict summarization prompt
     answer = generate_response(query, clauses)
     return {
         "question": query,
@@ -104,6 +105,7 @@ async def run_query(req: QueryRequest):
         results = list(executor.map(lambda q: process_question(q, search_similar_clauses(q)), req.questions))
 
     return {"answers": results}
+
 
 # ----------------------
 # 🩺 Health Check
