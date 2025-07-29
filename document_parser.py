@@ -1,35 +1,67 @@
-import requests
-import tempfile
-import mimetypes
-from PyPDF2 import PdfReader
-from docx import Document
+import os
+import re
+import fitz  # PyMuPDF
+import docx
+import email
+from bs4 import BeautifulSoup
 
-def fetch_and_save_document(url: str):
-    response = requests.get(url)
-    response.raise_for_status()
-    ext = mimetypes.guess_extension(response.headers.get("Content-Type", "application/pdf"))
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-        tmp.write(response.content)
-        return tmp.name
-
-def extract_text_from_pdf(path: str):
+def parse_pdf(path):
+    text = ""
     try:
-        reader = PdfReader(path)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
-    except Exception:
-        return ""
+        with fitz.open(path) as doc:
+            for page in doc:
+                text += page.get_text()
+    except Exception as e:
+        print(f"[PDF ERROR] {path}: {e}")
+    return text
 
-def extract_text_from_docx(path: str):
+def parse_docx(path):
+    text = ""
     try:
-        doc = Document(path)
-        return "\n".join(paragraph.text for paragraph in doc.paragraphs)
-    except Exception:
-        return ""
+        doc = docx.Document(path)
+        text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+    except Exception as e:
+        print(f"[DOCX ERROR] {path}: {e}")
+    return text
 
-def parse_document(path: str):
-    if path.endswith(".pdf"):
-        return extract_text_from_pdf(path)
-    elif path.endswith(".docx"):
-        return extract_text_from_docx(path)
-    else:
-        return ""
+def parse_eml(path):
+    text = ""
+    try:
+        with open(path, "rb") as f:
+            msg = email.message_from_binary_file(f)
+            for part in msg.walk():
+                if part.get_content_type() == "text/plain":
+                    text += part.get_payload(decode=True).decode(errors="ignore")
+                elif part.get_content_type() == "text/html":
+                    soup = BeautifulSoup(part.get_payload(decode=True), "html.parser")
+                    text += soup.get_text()
+    except Exception as e:
+        print(f"[EML ERROR] {path}: {e}")
+    return text
+
+def extract_clauses(text):
+    # Basic split on newlines and bullet points
+    raw_clauses = re.split(r"\n+|(?<=\.)(?=\s+[A-Z0-9])|•", text)
+    return [c.strip() for c in raw_clauses if len(c.strip()) > 30]
+
+def parse_documents_from_path(paths):
+    clauses = []
+    seen = set()
+
+    for path in paths:
+        ext = os.path.splitext(path)[-1].lower()
+        if ext == ".pdf":
+            content = parse_pdf(path)
+        elif ext == ".docx":
+            content = parse_docx(path)
+        elif ext == ".eml":
+            content = parse_eml(path)
+        else:
+            continue
+
+        for clause in extract_clauses(content):
+            if clause not in seen:
+                seen.add(clause)
+                clauses.append(clause)
+
+    return clauses
