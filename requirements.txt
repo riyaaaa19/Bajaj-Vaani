@@ -1,8 +1,8 @@
+# requirements.txt (FINAL)
 fastapi==0.111.0
 pydantic==2.7.1
-pydantic-core==2.18.1  # ✅ safe prebuilt version
-
 uvicorn[standard]>=0.29.0
+
 python-dotenv
 google-generativeai
 PyMuPDF
