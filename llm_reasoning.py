@@ -8,14 +8,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 model = genai.GenerativeModel(
     "gemini-1.5-flash",
-    generation_config={"temperature": 0.4, "max_output_tokens": 200},
-    safety_settings=[
-        {"category": "HARM_CATEGORY_DEROGATORY", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_VIOLENCE", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_SEXUAL", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"}
-    ]
+    generation_config={"temperature": 0.4, "max_output_tokens": 200}
+    # ❌ Removed safety_settings to avoid KeyError
 )
 
 def extract_relevant_clauses(text: str, question: str, max_clauses: int = 5) -> str:
