@@ -1,34 +1,25 @@
 from datetime import datetime, timedelta
-from jose import jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from fastapi import HTTPException
+from jose import JWTError, jwt  # use `python-jose` instead of `pyjwt`
 
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+VALID_USERNAME = "admin"
+VALID_PASSWORD = "admin123"
 
-class User(BaseModel):
-    username: str
-    role: str
+def authenticate_user(username: str, password: str) -> bool:
+    return username == VALID_USERNAME and password == VALID_PASSWORD
 
-fake_users_db = {
-    "admin": {
-        "username": "admin",
-        "hashed_password": pwd_context.hash("admin123"),
-        "role": "admin"
-    }
-}
-
-def authenticate_user(username: str, password: str):
-    user = fake_users_db.get(username)
-    if user and pwd_context.verify(password, user["hashed_password"]):
-        return User(username=user["username"], role=user["role"])
-    return None
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
+def create_token(username: str) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    payload = {"sub": username, "exp": expire}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def verify_token(token: str) -> str:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload["sub"]
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")

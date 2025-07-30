@@ -1,51 +1,46 @@
-import os
-from typing import List, Tuple
+import requests
+import fitz  # PyMuPDF
+import mimetypes
+import tempfile
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfReader
-import docx
+from docx import Document
 import email
 
-def extract_clauses_from_pdf(file_path: str) -> List[Tuple[str, str]]:
-    reader = PdfReader(file_path)
-    text = "\n".join(page.extract_text() or "" for page in reader.pages)
-    return split_into_clauses(text), os.path.basename(file_path)
+def parse_documents_from_url(url: str) -> str:
+    response = requests.get(url)
+    content_type = response.headers.get("Content-Type")
+    ext = mimetypes.guess_extension(content_type or "")
 
-def extract_clauses_from_docx(file_path: str) -> List[Tuple[str, str]]:
-    doc = docx.Document(file_path)
-    text = "\n".join([p.text for p in doc.paragraphs])
-    return split_into_clauses(text), os.path.basename(file_path)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        tmp.write(response.content)
+        tmp.flush()
+        if ext == ".pdf":
+            return extract_text_from_pdf(tmp.name)
+        elif ext == ".docx":
+            return extract_text_from_docx(tmp.name)
+        elif ext == ".eml":
+            return extract_text_from_eml(tmp.name)
+        else:
+            raise Exception("Unsupported file type")
 
-def extract_clauses_from_eml(file_path: str) -> List[Tuple[str, str]]:
-    with open(file_path, "r", encoding="utf-8") as f:
+def extract_text_from_pdf(path: str) -> str:
+    text = ""
+    with fitz.open(path) as doc:
+        for page in doc:
+            text += page.get_text()
+    return text
+
+def extract_text_from_docx(path: str) -> str:
+    doc = Document(path)
+    return "\n".join([para.text for para in doc.paragraphs])
+
+def extract_text_from_eml(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
         msg = email.message_from_file(f)
-        body = ""
         if msg.is_multipart():
             for part in msg.walk():
-                if part.get_content_type() == "text/plain":
-                    body += part.get_payload(decode=True).decode("utf-8", errors="ignore")
+                if part.get_content_type() == "text/html":
+                    return BeautifulSoup(part.get_payload(decode=True), "html.parser").get_text()
         else:
-            body = msg.get_payload(decode=True).decode("utf-8", errors="ignore")
-    soup = BeautifulSoup(body, "html.parser")
-    text = soup.get_text()
-    return split_into_clauses(text), os.path.basename(file_path)
-
-def split_into_clauses(text: str) -> List[str]:
-    return [c.strip() for c in text.split("\n") if len(c.strip()) > 30]
-
-def parse_documents_from_folder(folder_path: str) -> List[Tuple[str, str]]:
-    clauses = []
-    for filename in os.listdir(folder_path):
-        path = os.path.join(folder_path, filename)
-        try:
-            if filename.endswith(".pdf"):
-                doc_clauses, src = extract_clauses_from_pdf(path)
-            elif filename.endswith(".docx"):
-                doc_clauses, src = extract_clauses_from_docx(path)
-            elif filename.endswith(".eml"):
-                doc_clauses, src = extract_clauses_from_eml(path)
-            else:
-                continue
-            clauses.extend([(c, src) for c in doc_clauses])
-        except Exception as e:
-            print(f"⚠️ Error parsing {filename}: {e}")
-    return clauses
+            return msg.get_payload()
+    return ""
