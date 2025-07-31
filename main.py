@@ -31,12 +31,13 @@ def run_query(
     logging.info("📥 Received query")
     text = parse_documents_from_url(payload.documents)
 
-    results = []
+    answers = []
     for question in payload.questions:
         answer = answer_question(text, question)
-        results.append({"answer": answer})
+        answers.append(answer)
 
-    return {"results": results}
+    return {"answers": answers}
+
 
 if __name__ == "__main__":
     import uvicorn
