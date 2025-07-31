@@ -4,7 +4,7 @@
 **Bajaj Vaani** is an intelligent LLM-based query-retrieval system designed to understand complex insurance documents like PDFs, DOCX, and emails. It provides accurate, clause-grounded answers to user questions by using Gemini Flash, FAISS-based semantic search, and policy clause extraction.
 
 ### 🔗 Try it Live
-👉 [API Docs (Swagger UI)](https://bajaj-vaani-hjjc.onrender.com)
+👉 [API Docs (Swagger UI)](https://bajaj-vaani-hjjc.onrender.com/docs)
 
 ---
 
