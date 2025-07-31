@@ -34,7 +34,7 @@ def run_query(
     results = []
     for question in payload.questions:
         answer = answer_question(text, question)
-        results.append({"question": question, "answer": answer})
+        results.append({"answer": answer})
 
     return {"results": results}
 
