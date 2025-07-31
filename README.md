@@ -1,102 +1,101 @@
-# 🛡️ Bajaj Vaani – Chat-Based Insurance Assistant
 
-**Bajaj Vaani** is an AI-powered FastAPI assistant for insurance document analysis. It semantically processes uploaded policies (PDF, DOCX, EML), answers user queries using Gemini 1.5, compares clauses across documents, and returns contextual explanations — all via secure JWT-authenticated endpoints.
+# 🛡️ Bajaj Vaani – LLM-Powered Insurance Query System
 
-🌐 **Live App**: [https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api](https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api)
+**Bajaj Vaani** is an intelligent LLM-based query-retrieval system designed to understand complex insurance documents like PDFs, DOCX, and emails. It provides accurate, clause-grounded answers to user questions by using Gemini Flash, FAISS-based semantic search, and policy clause extraction.
 
----
-
-## 🚀 Features  
-🔐 JWT-secured login with hardcoded user auth  
-📄 Upload & ask multiple questions from a single policy document  
-💬 Natural language query support  
-📊 Clause-wise policy comparison  
-🧠 Semantic clause matching with FAISS + MiniLM  
-🤖 Gemini-powered LLM explanations  
-🧪 Interactive Swagger UI at `/`
+### 🔗 Try it Live
+👉 [API Docs (Swagger UI)](https://bajaj-vaani-hjjc.onrender.com/docs)
 
 ---
 
-## 🧪 Quick Start  
-🔐 1. Login  
-**POST** `/login`  
-Use the dummy judge account:
+## 🚀 Features
+
+- 📄 Parse PDF, DOCX, and EML documents from blob URLs
+- 🤖 Answer policy-related questions using Gemini 1.5 Flash
+- 🔍 Retrieve relevant clauses using semantic search (FAISS)
+- ✅ Token-based authentication (via login endpoint)
+- 🧠 Accurate, clause-based answers in real time
+- ⚡ FastAPI backend with <30s average response time
+
+---
+
+## 📌 API Usage
+
+### 🔐 Step 1: Login to get a token
+
+POST `/login`
 
 ```json
 {
-  "username": "judge",
-  "password": "demo123"
+  "username": "admin",
+  "password": "admin123"
 }
 ````
 
-Use the token in the Authorization header:
-
-```
-Authorization: Bearer your_token_here
-```
-
-📄 2. Upload & Ask Multiple Questions
-**POST** `/run`
-
-* Accepts a document (file or blob URL)
-* Accepts a list of questions
-* Returns Gemini-powered answers based on document clauses
-
-💬 3. Query an Insurance Policy
-**POST** `/ask` *(Auth Required)*
-
-**Request**
-
-```json
-{ "text": "Does this policy cover accidental death?" }
-```
-
-**Response**
+Response:
 
 ```json
 {
-  "explanation": "Clause 4.1 clearly states that the insured is entitled to compensation in case of accidental death. This satisfies your query."
+  "access_token": "<your_token>",
+  "token_type": "bearer"
 }
 ```
 
-🧠 How it works
+In Swagger UI, click **Authorize** 🔐 and paste your token.
 
-* `search_similar_clauses()` finds relevant clauses from indexed policies
-* `generate_response()` gives a precise explanation using Gemini + clause context
+---
 
-📊 4. Compare Two Policy Documents
-**POST** `/compare-from-blob`
+### 🤖 Step 2: Run Query
+
+POST `/api/v1/bajaj-vaani/run`
 
 ```json
 {
-  "url1": "https://.../policy1.pdf",
-  "url2": "https://.../policy2.pdf"
+  "documents": "<blob_url_to_policy.pdf>",
+  "questions": [
+    "What is the grace period for premium payment?",
+    "Does the policy cover maternity expenses?",
+    ...
+  ]
 }
 ```
 
-Returns: Sample clause matches + similarity scores
+Response:
+
+```json
+{
+  "results": [
+    {
+      "question": "...",
+      "answer": "..."
+    }
+  ]
+}
+```
 
 ---
 
 ## ⚙️ Tech Stack
 
-* **Backend**: FastAPI
-* **Vector Search**: FAISS + `sentence-transformers` (MiniLM)
-* **LLM**: Google Gemini 1.5 Flash
-* **Auth**: JWT (`python-jose`) with bcrypt
-* **Parsing**: PyPDF2, python-docx, email
-* **Deployment**: Hugging Face Spaces (Gradio + FastAPI runtime)
+* **Backend**: FastAPI + Uvicorn
+* **LLM**: Gemini 1.5 Flash (via Google Generative AI)
+* **Vector DB**: FAISS
+* **Parsing**: PyMuPDF, python-docx, BeautifulSoup
+* **Auth**: OAuth2 (JWT)
 
 ---
 
-## 🐳 Deployment
-✅ App is hosted and running live on **Hugging Face Spaces**
-🔗 [https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api](https://huggingface.co/spaces/riyaaa19/bajaj-vaani-api)
+## 🧠 Prompt Engineering
+
+The system extracts top clauses from the document using keyword and semantic overlap, then crafts a concise prompt:
+
+> “Based only on the above content, write a full, clause-based answer with all conditions and details.”
 
 ---
 
-## 👤 Author
-Made with ❤️ by The Avalanche
-Built for HackRx | Powered by Google Gemini + FAISS
+Made by - The Avalanche ✨
+
+---
+
 
 
