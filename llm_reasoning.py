@@ -8,11 +8,10 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 model = genai.GenerativeModel(
     "gemini-1.5-flash",
-    generation_config={"temperature": 0.4, "max_output_tokens": 200}
-    # ❌ Removed safety_settings to avoid KeyError
+    generation_config={"temperature": 0.4, "max_output_tokens": 512}
 )
 
-def extract_relevant_clauses(text: str, question: str, max_clauses: int = 5) -> str:
+def extract_relevant_clauses(text: str, question: str, max_clauses: int = 7) -> str:
     sentences = re.split(r"(?<=[.;])\s+", text)
     question_keywords = set(re.findall(r'\b\w+\b', question.lower()))
     
@@ -24,9 +23,8 @@ def extract_relevant_clauses(text: str, question: str, max_clauses: int = 5) -> 
         clause_words = set(re.findall(r'\b\w+\b', s_clean.lower()))
         score = len(question_keywords & clause_words)
 
-        # domain-specific boosts
         bonus = 0
-        if any(w in clause_words for w in ["grace", "premium", "payment", "days", "renew"]):
+        if any(w in clause_words for w in ["grace", "premium", "payment", "days", "renew", "waiting", "maternity", "coverage", "conditions", "definition"]):
             bonus += 3
         if re.search(r"\b\d+\s*days\b", s_clean.lower()) or "thirty days" in s_clean.lower():
             bonus += 5
@@ -39,10 +37,11 @@ def extract_relevant_clauses(text: str, question: str, max_clauses: int = 5) -> 
 def answer_question(text: str, question: str) -> str:
     context = extract_relevant_clauses(text, question)
     prompt = (
-        f"{context}\n\n"
-        f"Q: {question}\n"
-        f"A: Answer only from the above and be very concise."
-    )
+    f"You are an expert assistant helping users understand insurance policies. Use only the information in the policy content below to answer the question.\n\n"
+    f"Policy Content:\n{context}\n\n"
+    f"Question: {question}\n\n"
+    f"Answer only from the above content in one clear and complete sentence. Do not guess. Use exact wording from the policy when possible."
+)
 
     try:
         response = model.generate_content(prompt)
