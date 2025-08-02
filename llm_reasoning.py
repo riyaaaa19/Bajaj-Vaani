@@ -36,7 +36,7 @@ def extract_relevant_clauses(text: str, question: str, max_clauses: int = 6) -> 
     top_clauses = [s for _, s in sorted(scored, reverse=True)[:max_clauses]]
     return "\n".join(top_clauses) if top_clauses else "No relevant clauses found."
 
-def answer_question_with_clauses(text: str, question: str) -> tuple[str, str]:
+def ask_questions_with_reasoning(text: str, question: str) -> tuple[str, str]:
     clauses = extract_relevant_clauses(text, question)
     prompt = (
         f"You are an insurance assistant. Read the extracted policy clauses below and answer the question completely and accurately.\n\n"
