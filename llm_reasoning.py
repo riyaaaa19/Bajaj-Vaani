@@ -1,3 +1,4 @@
+# llm_reasoning.py
 import os
 import google.generativeai as genai
 import re
@@ -8,7 +9,7 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 model = genai.GenerativeModel(
     "gemini-1.5-flash",
-    generation_config={"temperature": 0.4, "max_output_tokens": 512}  # ⬅️ Increased token limit
+    generation_config={"temperature": 0.4, "max_output_tokens": 1024}  # ✅ Increased token limit
 )
 
 def extract_relevant_clauses(text: str, question: str, max_clauses: int = 6) -> str:
@@ -35,17 +36,17 @@ def extract_relevant_clauses(text: str, question: str, max_clauses: int = 6) -> 
     top_clauses = [s for _, s in sorted(scored, reverse=True)[:max_clauses]]
     return "\n".join(top_clauses) if top_clauses else "No relevant clauses found."
 
-def answer_question(text: str, question: str) -> str:
-    context = extract_relevant_clauses(text, question)
+def answer_question_with_clauses(text: str, question: str) -> tuple[str, str]:
+    clauses = extract_relevant_clauses(text, question)
     prompt = (
         f"You are an insurance assistant. Read the extracted policy clauses below and answer the question completely and accurately.\n\n"
-        f"{context}\n\n"
+        f"{clauses}\n\n"
         f"Q: {question}\n"
         f"A: Based only on the above content, write a full, clause-based answer with all conditions and details."
     )
 
     try:
         response = model.generate_content(prompt)
-        return response.text.strip()
+        return response.text.strip(), clauses
     except Exception as e:
-        return f"❌ LLM error: {e}"
+        return "Unable to extract relevant answer from document.", clauses

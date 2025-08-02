@@ -1,12 +1,13 @@
+# main.py
 import logging
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from document_parser import parse_documents_from_url
-from llm_reasoning import answer_question
+from llm_reasoning import answer_question_with_clauses
 from auth import authenticate_user, create_token, verify_token
 
-app = FastAPI(title="Bajaj Vaani API")
+app = FastAPI(title="HackRx LLM Query System")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +23,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         return {"access_token": token, "token_type": "bearer"}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
-@app.post("/api/v1/bajaj-vaani/run")
+@app.post("/hackrx/run")  
 def run_query(
     payload: RunQueryRequest,
     token: str = Depends(oauth2_scheme)
@@ -33,11 +34,14 @@ def run_query(
 
     answers = []
     for question in payload.questions:
-        answer = answer_question(text, question)
-        answers.append(answer)
+        answer, clauses = answer_question_with_clauses(text, question)
+        answers.append({
+            "question": question,
+            "answer": answer,
+            "clauses": clauses  # ✅ For explainability
+        })
 
     return {"answers": answers}
-
 
 if __name__ == "__main__":
     import uvicorn
