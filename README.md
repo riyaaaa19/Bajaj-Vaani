@@ -1,101 +1,84 @@
+# 🛡️Bajaj Vaani - Policy Clause-Based Q\&A API
 
-# 🛡️ Bajaj Vaani – LLM-Powered Insurance Query System
+## Overview
 
-**Bajaj Vaani** is an intelligent LLM-based query-retrieval system designed to understand complex insurance documents like PDFs, DOCX, and emails. It provides accurate, clause-grounded answers to user questions by using Gemini Flash, FAISS-based semantic search, and policy clause extraction.
-
-### 🔗 Try it Live
-👉 [API Docs (Swagger UI)](https://bajaj-vaani-hjjc.onrender.com/docs)
+Bajaj Vaani is an intelligent API designed to answer user queries based on policy documents. It extracts relevant clauses from uploaded insurance-related documents and uses Gemini AI to generate detailed answers for each question.
 
 ---
 
-## 🚀 Features
+## Features
 
-- 📄 Parse PDF, DOCX, and EML documents from blob URLs
-- 🤖 Answer policy-related questions using Gemini 1.5 Flash
-- 🔍 Retrieve relevant clauses using semantic search (FAISS)
-- ✅ Token-based authentication (via login endpoint)
-- 🧠 Accurate, clause-based answers in real time
-- ⚡ FastAPI backend with <30s average response time
-
----
-
-## 📌 API Usage
-
-### 🔐 Step 1: Login to get a token
-
-POST `/login`
-
-```json
-{
-  "username": "admin",
-  "password": "admin123"
-}
-````
-
-Response:
-
-```json
-{
-  "access_token": "<your_token>",
-  "token_type": "bearer"
-}
-```
-
-In Swagger UI, click **Authorize** 🔐 and paste your token.
+* ✅ Upload document via URL (PDF, DOCX, EML)
+* ✅ Extract relevant clauses using semantic matching
+* ✅ AI-generated clause-based answers using Google Gemini
+* ✅ Optional JWT-based authentication
+* ✅ FastAPI + Uvicorn-powered backend
 
 ---
 
-### 🤖 Step 2: Run Query
+## API Endpoint
 
-POST `/api/v1/bajaj-vaani/run`
+**POST** `/hackrx/run`
+
+### Request Body (JSON):
 
 ```json
 {
-  "documents": "<blob_url_to_policy.pdf>",
+  "documents": "https://example.com/sample.pdf",
   "questions": [
-    "What is the grace period for premium payment?",
-    "Does the policy cover maternity expenses?",
-    ...
+    "What is the grace period?",
+    "Is policy cancellation allowed?"
   ]
 }
 ```
 
-Response:
+### Response:
 
 ```json
 {
-  "results": [
-    {
-      "question": "...",
-      "answer": "..."
-    }
+  "answers": [
+    "The grace period is 30 days after the due date...",
+    "Yes, policy cancellation is permitted under..."
   ]
 }
 ```
 
 ---
 
-## ⚙️ Tech Stack
+## Authentication (Optional)
 
-* **Backend**: FastAPI + Uvicorn
-* **LLM**: Gemini 1.5 Flash (via Google Generative AI)
-* **Vector DB**: FAISS
-* **Parsing**: PyMuPDF, python-docx, BeautifulSoup
-* **Auth**: OAuth2 (JWT)
+* Add header: `Authorization: Bearer <token>`
+* To generate token, use `/login` route (demo credentials in `.env`)
 
 ---
 
-## 🧠 Prompt Engineering
+## Setup Instructions
 
-The system extracts top clauses from the document using keyword and semantic overlap, then crafts a concise prompt:
+1. Clone the repo
+2. Install requirements: `pip install -r requirements.txt`
+3. Add `.env` file with:
 
-> “Based only on the above content, write a full, clause-based answer with all conditions and details.”
+```
+SECRET_KEY=your_secret_key
+GOOGLE_API_KEY=your_gemini_key
+VALID_USERNAME=admin
+VALID_PASSWORD=admin123
+```
+
+4. Run the app: `uvicorn main:app --reload`
+5. Visit `http://localhost:8000/docs` to test
 
 ---
 
-Made by - The Avalanche ✨
+## Deployment
+
+The project is live on Render:
+**Base URL:** `https://bajaj-vaani-y8dl.onrender.com`
+**Swagger UI:** `/docs`
+**API Endpoint:** `/hackrx/run`
 
 ---
 
+## Team
 
-
+Built for HackRx 5.0 by Team The Avalanche
