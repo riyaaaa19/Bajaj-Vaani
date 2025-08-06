@@ -1,0 +1,160 @@
+2025-08-03 22:56:51,126 - Q: What is the grace period for premium payment under the National Parivar Mediclaim Plus Policy?
+Grace Period as mentioned in the table below would be given to pay the installment premium due 
+In case of installment premium due not received within the Grace Period, the Policy will get 
+“Specific Waiting Periods” in the event of payment of premium within the stipulated Grace Period 
+Grace Period means the specified period of time immediately following the premium due date 
+During such Grace Period, coverage will not be available from the due date of installment premium 
+acceptance and payment of premium (if any). The renewed Policy shall be treated as having 
+------------------------------------------------------------
+2025-08-03 22:57:20,078 - Q: What is the waiting period for pre-existing diseases (PED) to be covered?
+All Illnesses and treatments shall be covered subject to the waiting periods specified below: 
+existing diseases, then the longer of the two waiting periods shall apply. 
+d) Coverage under the policy after the expiry of 36 months for any pre-existing disease is 
+continuity benefits such as waiting periods and coverage of Pre-Existing Diseases. Coverage is 
+a) Expenses related to the treatment of a pre-existing disease (PED) and its direct 
+gaining credit for pre-existing diseases, time bound exclusions and for all waiting periods. 
+------------------------------------------------------------
+2025-08-03 22:57:50,254 - Q: Does this policy cover maternity expenses, and what are the conditions?
+a maternity claim under this Policy. 
+a. Maternity Expenses  
+Maternity Expenses     
+Maternity expenses means 
+Maternity( except to the extent provided for under Section 
+This Benefit is applicable if Maternity 
+------------------------------------------------------------
+2025-08-03 22:58:29,422 - Q: What is the waiting period for cataract surgery?
+Cataract 
+5) Expenses related to the treatment for correction of eye sight due to 
+Surgeries/ procedure (irrespective of 
+i. Surgery to be conducted is upon the advice of the Doctor 
+accompanied by full particulars at least 48 hours before any planned treatment or 
+Hospitalisation or within 24 hours after the treatment or Hospitalisation in the case of an 
+------------------------------------------------------------
+2025-08-03 22:58:54,655 - Q: Are the medical expenses for an organ donor covered under this policy?
+Expenses  incurred by the insured on organ donation 
+insured person while donating an organ is 
+Medical Expenses for any medically 
+Medical Expenses incurred for the 
+Expenses related to any treatment, including surgical management, 
+i. Such Medical Expenses are for the same condition for which the insured person’s 
+------------------------------------------------------------
+2025-08-03 22:59:21,544 - Q: What is the No Claim Discount (NCD) offered in this policy?
+to make any payment for claim(s) arising under the Policy. 
+single premium. These discounts shall be applicable at inception and renewal of the policy 
+of the first policy with us. This exclusion shall not be applicable for claims arising due to an 
+provides that the policyholder/insured will bear a specified percentage of the admissible claim 
+the no claim bonus for each member in the expiring policy, and such expiring policy is renewed with Us on a 
+The Company shall not repudiate the claim and / or forfeit the Policy benefits on the ground of 
+------------------------------------------------------------
+2025-08-03 22:59:48,509 - Q: Is there a benefit for preventive health check-ups?
+Preventive Health Check-up means a package of medical test(s) undertaken for general assessment of 
+5.3. Preventive Health Check-up 
+for a Cumulative Bonus and Health Checkup. This benefit is optional and effective only if mentioned in the 
+(whichever is lower) towards the cost of a preventive health check-up for those Insured Persons 
+Health Checkup. 
+for a Cumulative Bonus and Health Checkup These benefits are applicable based on the plan variant 
+------------------------------------------------------------
+2025-08-03 23:00:10,150 - Q: How does the policy define a 'Hospital'?
+Hospital means any institution established for in-patient care and day care treatment of 
+Hospitalisation: 
+hospitalization 
+hospitalization  
+hospitalization 
+hospitalization  
+------------------------------------------------------------
+2025-08-03 23:00:39,016 - Q: What is the extent of coverage for AYUSH treatments?
+Having dedicated AYUSH therapy sections as required and/or has equipped operation 
+Having dedicated AYUSH therapy sections as required and/or has equipped 
+AYUSH Treatment refers to hospitalisation treatments given under Ayurveda, Yoga and 
+applicable, and is under the supervision of a qualified registered AYUSH Medical 
+1. Treatment of less than 3 days (Coverage will be 
+3. Treatment availed outside India 
+------------------------------------------------------------
+2025-08-03 23:01:09,893 - Q: Are there any sub-limits on room rent and ICU charges for Plan A?
+ICU (Intensive Care Unit) Charges means the amount charged by a Hospital towards ICU 
+Room Rent means the amount charged by a hospital towards room and boarding expenses 
+limits, sub limits, co-payments, deductibles as per the policy contract 
+Hospital room rent or boarding; 
+any ICU patient including monitoring devices, critical care nursing and intensivist charges. 
+a) Expenses related to any admission primarily for enforced bed rest 
+------------------------------------------------------------
+2025-08-06 17:34:56,383 - Q: What is the grace period for premium payment under this policy?
+In case of installment premium due not received within the Grace Period, the Policy will get
+Grace Period as mentioned in the table below would be given to pay the installment premium due
+Grace Period means the specified period of time immediately following the premium due date
+“Specific Waiting Periods” in the event of payment of premium within the stipulated Grace Period
+During such Grace Period, coverage will not be available from the due date of installment premium
+acceptance and payment of premium (if any). The renewed Policy shall be treated as having
+------------------------------------------------------------
+2025-08-06 17:34:59,839 - Q: Can the policy be revived after it has lapsed?
+After completion of eight continuous years under the policy, no look back to be applied. This period
+policy issued by the insurer or its reinstatement or
+iv. At the end of the policy period, the Policy shall terminate and can be renewed within the
+policy has been maintained without a break.
+during which a payment can be made to renew or continue a Policy in force without loss of
+policy available with us at the time of renewal subject to underwriting with continuity benefit of
+------------------------------------------------------------
+2025-08-06 17:35:01,030 - Q: What are the benefits provided on maturity of the policy?
+conditions of this Policy.
+the Policy Period, and
+the end of the policy period.
+accordance with the terms and conditions of the chosen Policy.
+the limits of and according to the terms of the chosen Policy.
+disclosed, wilfully or otherwise, the Policy shall be:
+------------------------------------------------------------
+2025-08-06 17:35:02,503 - Q: Is partial withdrawal allowed under this policy?
+n. Withdrawal of Policy
+In case of installment premium due not received within the Grace Period, the Policy will get
+to an additional 15 days of relaxation period will lead to termination of the Policy.
+Policy, all benefits under this policy and the premium paid shall be forfeited.
+under the policy is conditional upon.
+permanent exclusions specified in the policy contract. The policies would however be subject to all
+------------------------------------------------------------
+2025-08-06 17:35:05,574 - Q: What is the policy on cancellation or surrender before maturity?
+The above options will not prejudice the rights of the Company to invoke cancellation under
+during which a payment can be made to renew or continue a Policy in force without loss of
+ii) The Company may cancel the policy at any time on grounds of misrepresentation non-
+policy available with us at the time of renewal subject to underwriting with continuity benefit of
+consent with a provision of grace period for treating the renewal continuous for the purpose of
+iv. At the end of the policy period, the Policy shall terminate and can be renewed within the
+------------------------------------------------------------
+2025-08-06 17:40:50,967 - Q: What is the grace period for premium payment under this policy?
+In case of installment premium due not received within the Grace Period, the Policy will get
+Grace Period as mentioned in the table below would be given to pay the installment premium due
+Grace Period means the specified period of time immediately following the premium due date
+“Specific Waiting Periods” in the event of payment of premium within the stipulated Grace Period
+During such Grace Period, coverage will not be available from the due date of installment premium
+acceptance and payment of premium (if any). The renewed Policy shall be treated as having
+------------------------------------------------------------
+2025-08-06 17:40:54,700 - Q: Can the policy be revived after it has lapsed?
+After completion of eight continuous years under the policy, no look back to be applied. This period
+policy issued by the insurer or its reinstatement or
+iv. At the end of the policy period, the Policy shall terminate and can be renewed within the
+policy has been maintained without a break.
+during which a payment can be made to renew or continue a Policy in force without loss of
+policy available with us at the time of renewal subject to underwriting with continuity benefit of
+------------------------------------------------------------
+2025-08-06 17:40:55,986 - Q: What are the benefits provided on maturity of the policy?
+conditions of this Policy.
+the Policy Period, and
+the end of the policy period.
+accordance with the terms and conditions of the chosen Policy.
+the limits of and according to the terms of the chosen Policy.
+disclosed, wilfully or otherwise, the Policy shall be:
+------------------------------------------------------------
+2025-08-06 17:40:57,470 - Q: Is partial withdrawal allowed under this policy?
+n. Withdrawal of Policy
+In case of installment premium due not received within the Grace Period, the Policy will get
+to an additional 15 days of relaxation period will lead to termination of the Policy.
+Policy, all benefits under this policy and the premium paid shall be forfeited.
+under the policy is conditional upon.
+permanent exclusions specified in the policy contract. The policies would however be subject to all
+------------------------------------------------------------
+2025-08-06 17:41:00,328 - Q: What is the policy on cancellation or surrender before maturity?
+The above options will not prejudice the rights of the Company to invoke cancellation under
+during which a payment can be made to renew or continue a Policy in force without loss of
+ii) The Company may cancel the policy at any time on grounds of misrepresentation non-
+policy available with us at the time of renewal subject to underwriting with continuity benefit of
+consent with a provision of grace period for treating the renewal continuous for the purpose of
+iv. At the end of the policy period, the Policy shall terminate and can be renewed within the
+------------------------------------------------------------

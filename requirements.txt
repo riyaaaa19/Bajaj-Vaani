@@ -1,15 +1,20 @@
-# requirements.txt (FINAL)
 fastapi==0.111.0
 pydantic==2.7.1
 uvicorn[standard]>=0.29.0
 
 python-dotenv
-google-generativeai
+requests
+python-jose
 PyMuPDF
 python-docx
 beautifulsoup4
+
+# Google Gemini + Auth
+google-generativeai
 google-api-python-client
 google-auth
 google-auth-httplib2
-requests
-python-jose
+
+# Clause matching with embeddings
+sentence-transformers
+faiss-cpu

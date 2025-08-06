@@ -1,50 +1,66 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from typing import List, Optional
-from jose import JWTError, jwt
+from typing import List
 from document_parser import parse_documents_from_url
-from llm_reasoning import ask_questions_with_reasoning
+from llm_reasoning import answer_question_with_clauses
 import os
+import logging
+from dotenv import load_dotenv
 
-SECRET_KEY = "hackrx"
-ALGORITHM = "HS256"
+# Load environment variable
+load_dotenv()
+TEAM_TOKEN = os.getenv("TEAM_TOKEN")
 
-app = FastAPI()
-
-origins = ["*"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# FastAPI app with security scheme metadata for Swagger UI
+app = FastAPI(
+    title="HackRx Clause-Based QA",
+    version="1.0",
+    description="Answer questions from uploaded documents using LLM + FAISS",
+    openapi_tags=[{
+        "name": "default",
+        "description": "Run queries on documents"
+    }]
 )
 
-class HackRXRequest(BaseModel):
+# Auth scheme - REQUIRED for Authorize button to show
+security = HTTPBearer(auto_error=False)
+
+# Logging
+logging.basicConfig(
+    filename="clause_log.txt",
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s"
+)
+
+# Request and response models
+class QueryRequest(BaseModel):
     documents: str
     questions: List[str]
 
-def get_current_user_optional(authorization: Optional[str] = Header(None)):
-    if not authorization:
-        return None
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            return None
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username:
-            return {"username": username}
-    except (JWTError, ValueError):
-        pass
-    return None
+class QueryResponse(BaseModel):
+    answers: List[str]
 
-@app.post("/hackrx/run")
-def run_query(request: HackRXRequest, user: Optional[dict] = Depends(get_current_user_optional)):
-    docs = parse_documents_from_url(request.documents)
-    answers = []
-    for question in request.questions:
-        answer, _clauses = ask_questions_with_reasoning(docs, question)
-        answers.append(answer)
-    return {"answers": answers}
+# Auth-protected route
+@app.post("/api/v1/hackrx/run", response_model=QueryResponse)
+async def run_query(
+    request: QueryRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    if not credentials or credentials.scheme.lower() != "bearer" or credentials.credentials != TEAM_TOKEN:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    try:
+        full_text = parse_documents_from_url(request.documents)
+        answers = []
+
+        for question in request.questions:
+            answer, used_clauses = answer_question_with_clauses(full_text, question)
+            logging.info(f"Q: {question}\n{used_clauses}\n" + "-" * 60)
+            answers.append(answer)
+
+        return {"answers": [a.strip().split("\n\n")[0] for a in answers]}
+
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
