@@ -1,20 +1,11 @@
-fastapi==0.111.0
-pydantic==2.7.1
-uvicorn[standard]>=0.29.0
-
+fastapi
+uvicorn
+pydantic
 python-dotenv
-requests
-python-jose
-PyMuPDF
-python-docx
-beautifulsoup4
-
-# Google Gemini + Auth
 google-generativeai
-google-api-python-client
-google-auth
-google-auth-httplib2
-
-# Clause matching with embeddings
+requests
+PyMuPDF
+beautifulsoup4
+python-docx
 sentence-transformers
 faiss-cpu
