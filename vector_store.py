@@ -1,31 +1,37 @@
 from sentence_transformers import SentenceTransformer
-import numpy as np
 import faiss
+import numpy as np
+import re
 
-# Use a smaller model to reduce memory usage
-MODEL_NAME = "paraphrase-MiniLM-L3-v2"
+# Use smaller model to save RAM
+_model = None
+
+def get_embedding_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
+    return _model
+
+def split_into_clauses(text: str) -> list[str]:
+    # Limit to first 200 clauses to save memory
+    sentences = re.split(r"(?<=[.;])\s+", text)
+    return [s.strip() for s in sentences if len(s.strip()) > 20][:200]
 
 class ClauseVectorStore:
     def __init__(self):
-        self.model = SentenceTransformer(MODEL_NAME)
         self.index = None
         self.clauses = []
 
-    def build_index(self, clauses: list[str], batch_size: int = 100):
+    def build_index(self, clauses: list[str]):
+        model = get_embedding_model()
         self.clauses = clauses
-        embeddings = []
+        embeddings = model.encode(clauses, show_progress_bar=False, batch_size=16)
+        dim = embeddings.shape[1]
+        self.index = faiss.IndexFlatL2(dim)
+        self.index.add(np.array(embeddings, dtype=np.float32))
 
-        for i in range(0, len(clauses), batch_size):
-            batch = clauses[i:i + batch_size]
-            batch_embeddings = self.model.encode(batch, show_progress_bar=False)
-            embeddings.extend(batch_embeddings)
-
-        embeddings_np = np.array(embeddings).astype("float32")
-        self.index = faiss.IndexFlatL2(embeddings_np.shape[1])
-        self.index.add(embeddings_np)
-
-    def query(self, query: str, top_k: int = 3) -> list[str]:
-        query_embedding = self.model.encode([query]).astype("float32")
-        distances, indices = self.index.search(query_embedding, top_k)
-
-        return [self.clauses[i] for i in indices[0] if i < len(self.clauses)]
+    def query(self, question: str, top_k=3) -> list[str]:
+        model = get_embedding_model()
+        q_embed = model.encode([question], show_progress_bar=False)
+        D, I = self.index.search(np.array(q_embed, dtype=np.float32), top_k)
+        return [self.clauses[i] for i in I[0] if i < len(self.clauses)]
