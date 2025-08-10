@@ -1,46 +1,64 @@
+# document_parser.py
 import requests
-import fitz  # PyMuPDF
-import mimetypes
 import tempfile
+import os
+import fitz  # PyMuPDF for PDFs
+import docx
 from bs4 import BeautifulSoup
-from docx import Document
-import email
 
 def parse_documents_from_url(url: str) -> str:
-    response = requests.get(url)
-    content_type = response.headers.get("Content-Type")
-    ext = mimetypes.guess_extension(content_type or "")
+    """
+    Download the document from the given URL and extract its text.
+    Supports PDF, DOCX, and HTML/EML.
+    Optimized for low memory usage.
+    """
+    # Stream download instead of loading fully into memory
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        r = requests.get(url, stream=True, timeout=20)
+        r.raise_for_status()
+        for chunk in r.iter_content(chunk_size=8192):
+            tmp.write(chunk)
+        tmp_path = tmp.name
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-        tmp.write(response.content)
-        tmp.flush()
-        if ext == ".pdf":
-            return extract_text_from_pdf(tmp.name)
-        elif ext == ".docx":
-            return extract_text_from_docx(tmp.name)
-        elif ext == ".eml":
-            return extract_text_from_eml(tmp.name)
+    text = ""
+    try:
+        if url.lower().endswith(".pdf"):
+            text = extract_text_from_pdf(tmp_path)
+        elif url.lower().endswith(".docx"):
+            text = extract_text_from_docx(tmp_path)
+        elif url.lower().endswith(".eml") or url.lower().endswith(".html"):
+            text = extract_text_from_html(tmp_path)
         else:
-            raise Exception("Unsupported file type")
+            text = read_as_text(tmp_path)
+    finally:
+        os.remove(tmp_path)  # Clean up file to save disk space
+
+    return text.strip()
 
 def extract_text_from_pdf(path: str) -> str:
-    text = ""
-    with fitz.open(path) as doc:
-        for page in doc:
-            text += page.get_text()
-    return text
+    """Extract text from PDF using PyMuPDF with streaming to reduce memory."""
+    text_chunks = []
+    with fitz.open(path) as pdf:
+        for page in pdf:
+            text_chunks.append(page.get_text("text"))
+    return "\n".join(text_chunks)
 
 def extract_text_from_docx(path: str) -> str:
-    doc = Document(path)
-    return "\n".join([para.text for para in doc.paragraphs])
+    """Extract text from DOCX file."""
+    text_chunks = []
+    doc = docx.Document(path)
+    for para in doc.paragraphs:
+        if para.text.strip():
+            text_chunks.append(para.text)
+    return "\n".join(text_chunks)
 
-def extract_text_from_eml(path: str) -> str:
-    with open(path, "r", encoding="utf-8") as f:
-        msg = email.message_from_file(f)
-        if msg.is_multipart():
-            for part in msg.walk():
-                if part.get_content_type() == "text/html":
-                    return BeautifulSoup(part.get_payload(decode=True), "html.parser").get_text()
-        else:
-            return msg.get_payload()
-    return ""
+def extract_text_from_html(path: str) -> str:
+    """Extract text from HTML/EML using BeautifulSoup."""
+    with open(path, "rb") as f:
+        soup = BeautifulSoup(f.read(), "html.parser")
+    return soup.get_text(separator="\n")
+
+def read_as_text(path: str) -> str:
+    """Fallback for plain text files."""
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read()
