@@ -1,84 +1,86 @@
-# 🛡️Bajaj Vaani - Policy Clause-Based Q\&A API
 
-## Overview
 
-Bajaj Vaani is an intelligent API designed to answer user queries based on policy documents. It extracts relevant clauses from uploaded insurance-related documents and uses Gemini AI to generate detailed answers for each question.
+# 📜 Bajaj Vaani – Clause-Based QA API
 
----
-
-## Features
-
-* ✅ Upload document via URL (PDF, DOCX, EML)
-* ✅ Extract relevant clauses using semantic matching
-* ✅ AI-generated clause-based answers using Google Gemini
-* ✅ Optional JWT-based authentication
-* ✅ FastAPI + Uvicorn-powered backend
+An API that extracts relevant clauses from insurance documents and answers user questions using **FAISS-based semantic search** and **Google Gemini 1.5 Flash**.
 
 ---
 
-## API Endpoint
+## 🚀 Features
 
-**POST** `/hackrx/run`
+* 📄 **Document Parsing** – Supports PDF, DOCX, and EML formats.
+* 🔍 **Semantic Search** – Finds relevant clauses using `SentenceTransformer` + FAISS.
+* 🤖 **LLM Integration** – Generates accurate answers with Gemini 1.5 Flash.
+* 🔐 **Secure API** – Bearer Token authentication as per HackRx PS.
+* ⚡ **Optimized for Deployment** – Memory-efficient clause indexing.
 
-### Request Body (JSON):
+---
+
+## 📌 API Endpoint
+
+**POST**
+
+```
+https://bajaj-vaani-y8dl.onrender.com/api/v1/hackrx/run
+```
+
+### **Headers**
+
+```
+Authorization: Bearer 8c4bbc30a45570cc5b1e605cba9c98db4ca91fd254c9d612ebf43e051302194d
+Content-Type: application/json
+```
+
+### **Request Body**
 
 ```json
 {
   "documents": "https://example.com/sample.pdf",
   "questions": [
-    "What is the grace period?",
-    "Is policy cancellation allowed?"
+    "What is the claim settlement process?",
+    "List the exclusions mentioned in the policy."
   ]
 }
 ```
 
-### Response:
+### **Response**
 
 ```json
 {
   "answers": [
-    "The grace period is 30 days after the due date...",
-    "Yes, policy cancellation is permitted under..."
+    "Claims can be made by notifying the insurer, submitting forms and documents...",
+    "The policy excludes damage due to war, terrorism, and pre-existing conditions..."
   ]
 }
 ```
 
 ---
 
-## Authentication (Optional)
+## 🛠️ Installation (Local Setup)
 
-* Add header: `Authorization: Bearer <token>`
-* To generate token, use `/login` route (demo credentials in `.env`)
-
----
-
-## Setup Instructions
-
-1. Clone the repo
-2. Install requirements: `pip install -r requirements.txt`
-3. Add `.env` file with:
-
-```
-SECRET_KEY=your_secret_key
-GOOGLE_API_KEY=your_gemini_key
-VALID_USERNAME=admin
-VALID_PASSWORD=admin123
+```bash
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-4. Run the app: `uvicorn main:app --reload`
-5. Visit `http://localhost:8000/docs` to test
+---
+
+## 📂 Project Structure
+
+```
+├── main.py               # FastAPI entry point
+├── vector_store.py       # FAISS vector store logic
+├── llm_reasoning.py      # LLM-based reasoning and answer generation
+├── document_parser.py    # Document parsing for PDF, DOCX, EML
+├── auth.py               # Token verification
+├── requirements.txt
+└── README.md
+```
 
 ---
 
-## Deployment
+## 📄 License
 
-The project is live on Render:
-**Base URL:** `https://bajaj-vaani-y8dl.onrender.com`
-**Swagger UI:** `/docs`
-**API Endpoint:** `/hackrx/run`
-
----
-
-## Team
-
-Built for HackRx 5.0 by Team The Avalanche
+This project is developed for **HackRx** and is intended for demonstration purposes only.
