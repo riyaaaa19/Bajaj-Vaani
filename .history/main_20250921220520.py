@@ -1,7 +1,7 @@
-# main.py
-from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from database import init_db, add_user, verify_user
@@ -10,6 +10,7 @@ import logging
 import uuid
 from PyPDF2 import PdfReader
 import docx
+import os
 
 app = FastAPI(
     title="AI Chatbot with File Upload",
@@ -18,9 +19,10 @@ app = FastAPI(
 )
 
 # -------------------------
-# Serve frontend
+# Serve frontend static files
 # -------------------------
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 # -------------------------
 # In-memory token store
@@ -55,9 +57,6 @@ class User(BaseModel):
     username: str
     password: str
 
-class ChatResponse(BaseModel):
-    answer: str
-
 # -------------------------
 # Helper functions
 # -------------------------
@@ -78,7 +77,7 @@ def extract_text_from_file(file: UploadFile) -> str:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {filename}")
 
 # -------------------------
-# User routes
+# User API
 # -------------------------
 @app.post("/register")
 async def register(user: User):
@@ -91,43 +90,44 @@ async def login(user: User):
     if verify_user(user.username, user.password):
         token = str(uuid.uuid4())
         active_tokens[user.username] = token
-        return {"access_token": token, "token_type": "bearer"}
+        response = RedirectResponse(url="/chat.html")
+        response.set_cookie(key="access_token", value=token)
+        return response
     raise HTTPException(status_code=401, detail="Invalid credentials.")
 
 # -------------------------
-# Chat route with file upload
+# Chat API
 # -------------------------
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 async def chat(
-    query: str = Query(..., description="Question to ask the AI"),
+    query: str = Form(...),
     files: Optional[List[UploadFile]] = File(None),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
-    # --- Secure token check ---
-    if not credentials or not credentials.scheme or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Missing or invalid token")
-    
-    if credentials.credentials not in active_tokens.values():
+    # Token validation (from header or cookie)
+    token = credentials.credentials if credentials else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    if token not in active_tokens.values():
         raise HTTPException(status_code=401, detail="Invalid token")
 
     if not query.strip():
         raise HTTPException(status_code=400, detail="Query is empty")
 
-    # --- Extract text from uploaded files ---
+    # Extract text from uploaded files
     document_text = ""
     if files:
         for file in files:
             document_text += extract_text_from_file(file) + "\n"
 
-    # --- Prepare final prompt ---
+    # Prepare final query
     final_query = f"{document_text}\n\nQuestion: {query}" if document_text else query
 
-    # --- Ask LLM ---
+    # Ask LLM
     try:
         answer = answer_question(final_query)
-        logging.info(
-            f"Q: {query}\nFiles: {[f.filename for f in files or []]}\nA: {answer}\n{'-'*60}"
-        )
+        logging.info(f"Q: {query}\nFiles: {[f.filename for f in files or []]}\nA: {answer}\n{'-'*60}")
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,5 +1,5 @@
 # vector_store.py
-from typing import List, Optional
+from typing import List
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -7,11 +7,11 @@ import faiss
 class ClauseVectorStore:
     """
     Lightweight vector store for clauses using FAISS and SBERT.
-    Fully type-hinted and Pylance-safe.
+    Fully type-hinted for Pylance/IDE safety.
     """
 
     clauses: List[str]
-    index: Optional[faiss.IndexFlatL2]  # Allow None initially
+    index: faiss.IndexFlatL2
     model: SentenceTransformer
 
     def __init__(self, model_name: str = "paraphrase-MiniLM-L3-v2") -> None:
@@ -25,16 +25,11 @@ class ClauseVectorStore:
         Build FAISS index from a list of clauses.
         """
         self.clauses = clauses
-
-        # Encode clauses into embeddings
         embeddings: np.ndarray = self.model.encode(
             clauses, convert_to_numpy=True, show_progress_bar=False
         ).astype("float32")
-        assert embeddings.ndim == 2, "Embeddings must be 2D (n_clauses, dim)"
-
-        # Build FAISS index
         self.index = faiss.IndexFlatL2(embeddings.shape[1])
-        self.index.add(embeddings)  # type: ignore  # Ignore Pylance/C++ signature issue
+        self.index.add(embeddings)
 
     def query(self, question: str, top_k: int = 4) -> List[str]:
         """
@@ -43,12 +38,12 @@ class ClauseVectorStore:
         if self.index is None:
             raise ValueError("Index not built. Call build_index first.")
 
-        # Encode the question
         q_emb: np.ndarray = self.model.encode([question], convert_to_numpy=True).astype("float32")
-        assert q_emb.ndim == 2 and q_emb.shape[0] == 1, "Question embedding must be shape (1, dim)"
-
-        # Perform FAISS search
+        
+        # FAISS search returns distances and indices
+        distances: np.ndarray
+        indices: np.ndarray
         distances, indices = self.index.search(q_emb, top_k)  # type: ignore
 
-        # Return matched clauses
+        # Return the matched clauses safely
         return [self.clauses[i] for i in indices[0] if 0 <= i < len(self.clauses)]

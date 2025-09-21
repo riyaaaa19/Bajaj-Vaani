@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartChat AI - Login/Register</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+  nav { background: #4a90e2; padding: 15px 30px; color: #fff; font-size: 20px; font-weight: bold; }
+  .container { display: flex; max-width: 900px; margin: 50px auto; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .info { flex: 1; background: #f4f4f4; padding: 40px; font-size: 16px; }
+  .form { flex: 1; padding: 40px; display: flex; flex-direction: column; }
+  input { margin-bottom: 15px; padding: 10px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
+  button { padding: 10px; font-size: 16px; background: #4a90e2; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+  .toggle { margin-top: 15px; font-size: 14px; cursor: pointer; color: #4a90e2; text-decoration: underline; }
+  .error { color: red; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<nav>SmartChat AI</nav>
+
+<div class="container">
+  <div class="info">
+    <h2>Welcome to SmartChat AI</h2>
+    <p>Upload multiple documents, ask questions, and get instant AI-powered answers. Simple, fast, and efficient.</p>
+  </div>
+  <div class="form">
+    <h2 id="form-title">Login</h2>
+    <div id="error" class="error"></div>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="submit-btn">Login</button>
+    <div class="toggle" id="toggle-form">Create an account?</div>
+  </div>
+</div>
+
+<script>
+let isLogin = true;
+
+document.getElementById('toggle-form').addEventListener('click', () => {
+    isLogin = !isLogin;
+    document.getElementById('form-title').innerText = isLogin ? "Login" : "Register";
+    document.getElementById('submit-btn').innerText = isLogin ? "Login" : "Register";
+    document.getElementById('toggle-form').innerText = isLogin ? "Create an account?" : "Already have an account?";
+    document.getElementById('error').innerText = "";
+});
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const url = isLogin ? "http://127.0.0.1:8000/login" : "http://127.0.0.1:8000/register";
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        const data = await res.json();
+        if(res.ok){
+            if(isLogin){
+                localStorage.setItem('token', data.access_token);
+                window.location.href = "chat.html";
+            } else {
+                alert("Registration successful! Please login.");
+            }
+        } else {
+            document.getElementById('error').innerText = data.detail || "Error";
+        }
+    } catch(err) {
+        document.getElementById('error').innerText = "Server error";
+    }
+});
+</script>
+
+</body>
+</html>

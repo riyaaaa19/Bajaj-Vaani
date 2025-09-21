@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chatbot Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f5f5f5; }
+    .login-box { background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:300px; }
+    input { width:100%; padding:10px; margin:10px 0; border-radius:4px; border:1px solid #ccc; }
+    button { width:100%; padding:10px; border:none; border-radius:4px; background:#007bff; color:#fff; font-weight:bold; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    .error { color:red; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="error"></div>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorDiv = document.getElementById("error");
+      errorDiv.textContent = "";
+
+      if(!username || !password){
+        errorDiv.textContent = "Username and password are required";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if(res.ok){
+          localStorage.setItem("token", data.access_token);
+          window.location.href = "chat.html";
+        } else {
+          errorDiv.textContent = data.detail || "Login failed";
+        }
+      } catch(e){
+        errorDiv.textContent = "Network error";
+      }
+    }
+  </script>
+</body>
+</html>

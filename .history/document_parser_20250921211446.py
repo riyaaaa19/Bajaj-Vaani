@@ -2,16 +2,17 @@
 import requests
 import tempfile
 import os
+import fitz  # PyMuPDF for PDFs
 import docx
 from bs4 import BeautifulSoup
-from typing import cast
 
 def parse_documents_from_url(url: str) -> str:
     """
     Download the document from the given URL and extract its text.
-    Supports PDF, DOCX, HTML/EML, TXT.
+    Supports PDF, DOCX, and HTML/EML.
+    Optimized for low memory usage.
     """
-    # Stream download to avoid memory overload
+    # Stream download instead of loading fully into memory
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         r = requests.get(url, stream=True, timeout=20)
         r.raise_for_status()
@@ -19,6 +20,7 @@ def parse_documents_from_url(url: str) -> str:
             tmp.write(chunk)
         tmp_path = tmp.name
 
+    text = ""
     try:
         if url.lower().endswith(".pdf"):
             text = extract_text_from_pdf(tmp_path)
@@ -29,23 +31,17 @@ def parse_documents_from_url(url: str) -> str:
         else:
             text = read_as_text(tmp_path)
     finally:
-        os.remove(tmp_path)
+        os.remove(tmp_path)  # Clean up file to save disk space
 
     return text.strip()
 
-
 def extract_text_from_pdf(path: str) -> str:
-    """Extract text from PDF using PyMuPDF."""
-    import fitz  # local import to avoid type issues
-
+    """Extract text from PDF using PyMuPDF with streaming to reduce memory."""
     text_chunks = []
     with fitz.open(path) as pdf:
         for page in pdf:
-            # Tell Pylance this has get_text
-            page = cast(fitz.Page, page)
-            text_chunks.append(page.get_text("text"))  # type: ignore[attr-defined]
-    return "\n".join(filter(None, text_chunks))
-
+            text_chunks.append(page.get_text("text"))
+    return "\n".join(text_chunks)
 
 def extract_text_from_docx(path: str) -> str:
     """Extract text from DOCX file."""
@@ -56,13 +52,11 @@ def extract_text_from_docx(path: str) -> str:
             text_chunks.append(para.text)
     return "\n".join(text_chunks)
 
-
 def extract_text_from_html(path: str) -> str:
     """Extract text from HTML/EML using BeautifulSoup."""
     with open(path, "rb") as f:
         soup = BeautifulSoup(f.read(), "html.parser")
     return soup.get_text(separator="\n")
-
 
 def read_as_text(path: str) -> str:
     """Fallback for plain text files."""

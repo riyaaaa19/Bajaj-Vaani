@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chatbot</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>AI Chatbot</h2>
+  <form id="chatForm">
+    <textarea id="query" placeholder="Ask a question..." required></textarea>
+    <input type="file" id="files" multiple>
+    <button type="submit">Send</button>
+  </form>
+  <div id="chatOutput"></div>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<script>
+const form = document.getElementById("chatForm");
+const output = document.getElementById("chatOutput");
+const token = localStorage.getItem("access_token");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const query = document.getElementById("query").value;
+  const files = document.getElementById("files").files;
+  const formData = new FormData();
+  formData.append("query", query);
+  for (const file of files) formData.append("files", file);
+
+  const response = await fetch("/chat", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + token },
+    body: formData
+  });
+
+  const data = await response.json();
+  if (response.ok) {
+    output.innerHTML += `<p><b>Q:</b> ${query}</p><p><b>A:</b> ${data.answer}</p><hr>`;
+  } else {
+    output.innerHTML += `<p class="error">${data.detail || "Error"}</p>`;
+  }
+  document.getElementById("query").value = "";
+});
+
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("access_token");
+  window.location.href = "login.html";
+});
+</script>
+</body>
+</html>

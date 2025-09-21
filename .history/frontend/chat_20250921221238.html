@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartChat AI - Chat</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+  nav { background: #4a90e2; padding: 15px 30px; color: #fff; font-size: 20px; font-weight: bold; }
+  .chat-container { max-width: 900px; margin: 30px auto; display: flex; flex-direction: column; }
+  .messages { border: 1px solid #ccc; border-radius: 10px; height: 400px; padding: 15px; overflow-y: auto; background: #fff; }
+  .message { margin: 10px 0; display: flex; }
+  .message.user { justify-content: flex-end; }
+  .message.bot { justify-content: flex-start; }
+  .bubble { padding: 10px; border-radius: 10px; max-width: 60%; }
+  .bubble.user { background: #4a90e2; color: #fff; }
+  .bubble.bot { background: #e4e4e4; color: #000; }
+  .input-area { display: flex; margin-top: 10px; gap: 10px; }
+  .input-area input[type="text"] { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+  .input-area button { padding: 10px 15px; background: #4a90e2; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav>SmartChat AI</nav>
+
+<div class="chat-container">
+  <div id="messages" class="messages"></div>
+  <div class="input-area">
+    <input type="text" id="query" placeholder="Ask something...">
+    <input type="file" id="files" multiple>
+    <button id="send-btn">Send +</button>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if(!token){ window.location.href = "index.html"; }
+
+const messagesDiv = document.getElementById('messages');
+const queryInput = document.getElementById('query');
+const filesInput = document.getElementById('files');
+
+function addMessage(sender, text){
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message ' + sender;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble ' + sender;
+    bubble.innerText = text;
+    msgDiv.appendChild(bubble);
+    messagesDiv.appendChild(msgDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+document.getElementById('send-btn').addEventListener('click', async () => {
+    const query = queryInput.value;
+    const files = filesInput.files;
+
+    if(!query && files.length===0) return;
+
+    const formData = new FormData();
+    formData.append("query", query);
+    for(let i=0;i<files.length;i++){ formData.append("files", files[i]); }
+
+    addMessage("user", query || "📎 Uploaded file");
+
+    try {
+        const res = await fetch("http://127.0.0.1:8000/chat", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` },
+            body: formData
+        });
+        const data = await res.json();
+        if(res.ok){
+            addMessage("bot", data.answer);
+            queryInput.value = "";
+            filesInput.value = "";
+        } else {
+            addMessage("bot", data.detail || "Error");
+        }
+    } catch(err) {
+        addMessage("bot", "Server error");
+    }
+});
+</script>
+
+</body>
+</html>

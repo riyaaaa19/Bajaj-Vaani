@@ -2,6 +2,7 @@
 import requests
 import tempfile
 import os
+import fitz  # PyMuPDF
 import docx
 from bs4 import BeautifulSoup
 from typing import cast

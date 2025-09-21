@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; display:flex; flex-direction:column; height:100vh; }
+    header { background:#007bff; color:#fff; padding:15px; text-align:center; }
+    main { flex:1; display:flex; flex-direction:column; padding:20px; overflow:auto; }
+    #chat-box { flex:1; border:1px solid #ccc; border-radius:8px; padding:10px; overflow-y:auto; background:#fff; margin-bottom:10px; }
+    .message { margin:5px 0; }
+    .user { font-weight:bold; }
+    .bot { color:green; }
+    form { display:flex; flex-direction:column; gap:10px; }
+    input[type="text"], button, input[type="file"] { padding:10px; border-radius:4px; border:1px solid #ccc; }
+    button { background:#007bff; color:#fff; border:none; cursor:pointer; font-weight:bold; }
+    button:hover { background:#0056b3; }
+  </style>
+</head>
+<body>
+  <header><h2>AI Chatbot</h2></header>
+  <main>
+    <div id="chat-box"></div>
+    <form id="chat-form">
+      <input type="text" id="query" placeholder="Ask your question..." required>
+      <input type="file" id="files" multiple>
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const form = document.getElementById("chat-form");
+
+    function appendMessage(sender, text){
+      const div = document.createElement("div");
+      div.className = "message " + (sender === "user" ? "user" : "bot");
+      div.textContent = sender + ": " + text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value.trim();
+      const files = document.getElementById("files").files;
+      const token = localStorage.getItem("token");
+
+      if(!token){
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+      }
+
+      appendMessage("user", query);
+
+      const formData = new FormData();
+      formData.append("query", query);
+      for(let i=0; i<files.length; i++){
+        formData.append("files", files[i]);
+      }
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/chat", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + token },
+          body: formData
+        });
+        const data = await res.json();
+        if(res.ok){
+          appendMessage("bot", data.answer);
+        } else {
+          appendMessage("bot", "Error: " + (data.detail || "Unknown error"));
+        }
+      } catch(e){
+        appendMessage("bot", "Network error");
+      }
+
+      form.reset();
+    });
+  </script>
+</body>
+</html>

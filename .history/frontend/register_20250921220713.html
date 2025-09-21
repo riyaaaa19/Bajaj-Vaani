@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - AI Chatbot</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>Register</h2>
+  <form id="registerForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="submit">Register</button>
+  </form>
+  <p>Already have an account? <a href="login.html">Login</a></p>
+  <p id="registerMessage" class="message"></p>
+</div>
+
+<script>
+const form = document.getElementById("registerForm");
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const response = await fetch("/register", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({username, password})
+  });
+
+  const data = await response.json();
+  const msg = document.getElementById("registerMessage");
+
+  if (response.ok) {
+    msg.textContent = "Registered successfully! Redirecting to login...";
+    setTimeout(() => window.location.href = "login.html", 1500);
+  } else {
+    msg.textContent = data.detail || "Registration failed";
+  }
+});
+</script>
+</body>
+</html>

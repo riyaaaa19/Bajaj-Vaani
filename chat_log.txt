@@ -1,0 +1,3 @@
+2025-09-21 21:46:58,273 - Q: what is tax?
+A: Tax is a compulsory financial charge or some other type of levy imposed on a taxpayer (an individual or legal entity) by a governmental organization in order to fund government spending and various public expenditures.
+------------------------------------------------------------

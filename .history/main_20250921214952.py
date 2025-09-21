@@ -1,7 +1,5 @@
-# main.py
 from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from database import init_db, add_user, verify_user
@@ -16,11 +14,6 @@ app = FastAPI(
     version="1.0",
     description="Ask questions and get answers from uploaded documents powered by Google Gemini"
 )
-
-# -------------------------
-# Serve frontend
-# -------------------------
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # -------------------------
 # In-memory token store

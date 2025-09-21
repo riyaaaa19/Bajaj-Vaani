@@ -1,26 +1,17 @@
-# main.py
 from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from database import init_db, add_user, verify_user
 from llm_reasoning import answer_question
 import logging
 import uuid
-from PyPDF2 import PdfReader
-import docx
 
 app = FastAPI(
     title="AI Chatbot with File Upload",
     version="1.0",
     description="Ask questions and get answers from uploaded documents powered by Google Gemini"
 )
-
-# -------------------------
-# Serve frontend
-# -------------------------
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # -------------------------
 # In-memory token store
@@ -62,20 +53,26 @@ class ChatResponse(BaseModel):
 # Helper functions
 # -------------------------
 def extract_text_from_file(file: UploadFile) -> str:
-    """Extract text from PDF, DOCX, or TXT files."""
+    """Extract text from PDF, DOCX, or TXT files safely."""
     filename = file.filename or ""
     lower_fname = filename.lower()
 
-    if lower_fname.endswith(".pdf"):
-        reader = PdfReader(file.file)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
-    elif lower_fname.endswith(".docx"):
-        doc = docx.Document(file.file)
-        return "\n".join(p.text for p in doc.paragraphs)
-    elif lower_fname.endswith(".txt"):
-        return file.file.read().decode("utf-8")
-    else:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {filename}")
+    try:
+        if lower_fname.endswith(".pdf"):
+            from PyPDF2 import PdfReader
+            reader = PdfReader(file.file)
+            return "\n".join((page.extract_text() or "") for page in reader.pages)
+        elif lower_fname.endswith(".docx"):
+            import docx
+            doc = docx.Document(file.file)
+            return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+        elif lower_fname.endswith(".txt"):
+            content = file.file.read()
+            return content.decode("utf-8") if isinstance(content, bytes) else str(content)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported file type: {filename}")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to process {filename}: {e}")
 
 # -------------------------
 # User routes
