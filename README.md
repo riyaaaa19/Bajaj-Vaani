@@ -1,86 +1,141 @@
 
+# Bajaj Vaani – Intelligent Finance Chatbot
 
-# 📜 Bajaj Vaani – Clause-Based QA API
-
-An API that extracts relevant clauses from insurance documents and answers user questions using **FAISS-based semantic search** and **Google Gemini 1.5 Flash**.
-
----
-
-## 🚀 Features
-
-* 📄 **Document Parsing** – Supports PDF, DOCX, and EML formats.
-* 🔍 **Semantic Search** – Finds relevant clauses using `SentenceTransformer` + FAISS.
-* 🤖 **LLM Integration** – Generates accurate answers with Gemini 1.5 Flash.
-* 🔐 **Secure API** – Bearer Token authentication as per HackRx PS.
-* ⚡ **Optimized for Deployment** – Memory-efficient clause indexing.
+**Bajaj Vaani** is an AI-powered finance assistant designed to help users interactively understand financial and insurance-related queries. The chatbot leverages **Google Gemini** for reasoning, provides persistent document context for multiple queries, and supports PDF, DOCX, and TXT uploads for enhanced understanding.
 
 ---
 
-## 📌 API Endpoint
+## Table of Contents
 
-**POST**
-
-```
-https://bajaj-vaani-y8dl.onrender.com/api/v1/hackrx/run
-```
-
-### **Headers**
-
-```
-Authorization: Bearer 8c4bbc30a45570cc5b1e605cba9c98db4ca91fd254c9d612ebf43e051302194d
-Content-Type: application/json
-```
-
-### **Request Body**
-
-```json
-{
-  "documents": "https://example.com/sample.pdf",
-  "questions": [
-    "What is the claim settlement process?",
-    "List the exclusions mentioned in the policy."
-  ]
-}
-```
-
-### **Response**
-
-```json
-{
-  "answers": [
-    "Claims can be made by notifying the insurer, submitting forms and documents...",
-    "The policy excludes damage due to war, terrorism, and pre-existing conditions..."
-  ]
-}
-```
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Technology Stack](#technology-stack)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [API Endpoints](#api-endpoints)
+7. [Architecture & Data Flow](#architecture--data-flow)
+8. [Future Scope](#future-scope)
+9. [References](#references)
 
 ---
 
-## 🛠️ Installation (Local Setup)
+## Overview
+
+Bajaj Vaani provides users with an interactive and human-like financial assistant experience. Users can ask questions, upload policy or finance documents, and receive **detailed, friendly, and easy-to-understand explanations**. The system maintains context across multiple queries, allowing seamless interactions about previously uploaded documents.
+
+---
+
+## Features
+
+* Text-based question answering with persistent context
+* Document upload for PDFs, DOCX, and TXT files
+* Detailed, human-friendly explanations for financial queries
+* JWT-based authentication for secure access
+* Logging of all queries and responses
+* RESTful API architecture for frontend-backend integration
+
+---
+
+## Technology Stack
+
+* **Frontend:** React, Tailwind CSS, HTML5, JavaScript
+* **Backend:** FastAPI (Python), Uvicorn server
+* **Database:** PostgreSQL for user accounts and document storage
+* **AI / LLM:** Google Gemini
+* **Document Parsing:** PyPDF2 (PDF), python-docx (DOCX), standard text processing
+* **Authentication & Security:** JWT-based Bearer Tokens, HTTPS
+* **APIs:** RESTful endpoints for chat and document upload
+
+---
+
+## Installation
+
+1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone <repository-url>
+cd bajaj-vaani
+```
+
+2. **Create and activate a virtual environment:**
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+3. **Install dependencies:**
+
+```bash
 pip install -r requirements.txt
+```
+
+4. **Set up environment variables:**
+
+```env
+GOOGLE_API_KEY=<Your-Google-API-Key>
+DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<database>
+```
+
+5. **Initialize the database:**
+
+```bash
+python -m backend.create_admin
+```
+
+6. **Run the application:**
+
+```bash
 uvicorn main:app --reload
 ```
 
 ---
 
-## 📂 Project Structure
+## Usage
 
-```
-├── main.py               # FastAPI entry point
-├── vector_store.py       # FAISS vector store logic
-├── llm_reasoning.py      # LLM-based reasoning and answer generation
-├── document_parser.py    # Document parsing for PDF, DOCX, EML
-├── auth.py               # Token verification
-├── requirements.txt
-└── README.md
-```
+* Navigate to `http://localhost:8000` (or frontend URL if integrated).
+* Register and login using your credentials.
+* Ask questions directly via text or upload documents to provide additional context.
+* The chatbot will answer in a **detailed, friendly, and easy-to-understand manner**.
 
 ---
 
-## 📄 License
+## API Endpoints
 
-This project is developed for **HackRx** and is intended for demonstration purposes only.
+| Endpoint    | Method | Description                           |
+| ----------- | ------ | ------------------------------------- |
+| `/register` | POST   | Register a new user                   |
+| `/login`    | POST   | Login and get JWT token               |
+| `/chat`     | POST   | Ask a question (text-only)            |
+| `/upload`   | POST   | Upload document(s) and ask a question |
+
+---
+
+## Architecture & Data Flow
+
+1. **User sends a query or uploads a document** via the frontend.
+2. **Backend authenticates** the user using JWT tokens.
+3. **Document content is extracted** using PyPDF2 or python-docx and stored as context.
+4. **Query + context** is sent to Google Gemini for reasoning.
+5. **Response** is logged and returned to the user in a human-friendly format.
+
+---
+
+## Future Scope
+
+* Deploy on **cloud platforms** like AWS, Render, or Heroku.
+* Add **multi-language support** for queries.
+* Integrate with **voice assistants** using TTS and speech recognition.
+* Implement **analytics dashboard** for query patterns and document usage.
+
+---
+
+## References
+
+1. [Google Gemini Documentation](https://developers.generativeai.google/)
+2. [FastAPI Documentation](https://fastapi.tiangolo.com/)
+3. [PyPDF2 Documentation](https://pypdf2.readthedocs.io/)
+4. [python-docx Documentation](https://python-docx.readthedocs.io/)
+5. [JWT Authentication](https://jwt.io/introduction/)
+6. [Finance & Insurance Policies](https://www.bajajfinserv.in/insurance)
