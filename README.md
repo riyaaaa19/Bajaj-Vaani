@@ -1,4 +1,3 @@
-
 # Bajaj Vaani – Intelligent Finance Chatbot
 
 **Bajaj Vaani** is an AI-powered finance assistant designed to help users interactively understand financial and insurance-related queries. The chatbot leverages **Google Gemini** for reasoning, provides persistent document context for multiple queries, and supports PDF, DOCX, and TXT uploads for enhanced understanding.
